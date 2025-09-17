@@ -2,7 +2,7 @@
 
 A simple flashcard app for practicing sight words.
 
-**Live app:** (fill after GitHub Pages deploy)  
+**Live app:** (https://crownedink.github.io/Spelling-SightWords/)  
 **Install help:** `how-to-install.html`
 
 ## Features
