@@ -1,7 +1,9 @@
 {
   "name": "Sight Words Flashcards",
   "short_name": "Sight Words",
-  "start_url": "./index.html",
+  "description": "Sight words with folders, TTS, spelling, and custom word sets.",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",

@@ -4,15 +4,281 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
 <title>Sight Words Flashcards</title>
+<style>
+  :root { --bg:#0f172a; --card:#111827; --text:#e5e7eb; --muted:#94a3b8; }
+  * { box-sizing:border-box; } html,body { margin:0; padding:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,Noto Sans,Ubuntu,Cantarell,Helvetica,sans-serif; }
+  .wrap { max-width:900px; margin:0 auto; padding:16px 16px 140px; }
+  h1 { font-size:1.15rem; margin:12px 0 8px; font-weight:800; letter-spacing:.01em; }
+  .controls,.row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+  button,select,input { background:#111827; color:#e5e7eb; border:1px solid #1f2937; padding:10px 14px; border-radius:10px; font-size:1rem; }
+  .card { user-select:none; width:100%; height:55vh; min-height:320px; background:linear-gradient(180deg,#0b1220,#0b1324); border:1px solid #1f2937; border-radius:16px; display:grid; place-items:center; position:relative; box-shadow:0 10px 30px rgba(0,0,0,.35); padding:16px; text-align:center; overflow:hidden; }
+  .word { font-size:clamp(2.5rem,9vw,5rem); font-weight:800; }
+  .sentence { position:absolute; bottom:16px; left:0; right:0; color:var(--muted); font-size:clamp(1rem,2.5vw,1.15rem); padding:0 16px; }
+  .pill { font-size:.85rem; padding:6px 10px; border-radius:999px; background:#0b1a2f; border:1px solid #1f2937; color:#9ca3af; }
+  .hint { margin-top:6px; color:#94a3b8; }
+</style>
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
 <body>
-<h1>Sight Words Flashcards</h1>
-<div id="app">Loading app...</div>
+<div class="wrap">
+  <h1>Sight Words Flashcards</h1>
+
+  <div class="row">
+    <label>Folder:</label>
+    <select id="folderSel"></select>
+    <button id="newFolderBtn">New Folder</button>
+    <button id="renameFolderBtn">Rename</button>
+    <button id="deleteFolderBtn">Delete</button>
+    <span class="pill" id="countPill"></span>
+  </div>
+
+  <div class="controls">
+    <button id="prevBtn">⟵ Prev</button>
+    <button id="flipBtn">Flip</button>
+    <button id="nextBtn">Next ⟶</button>
+    <button id="shuffleBtn">Shuffle</button>
+    <button id="speakBtn">🔊 Speak</button>
+    <button id="spellBtn">🔤 Spell</button>
+    <button id="installBtn" hidden class="pill">Install App</button>
+    <button onclick="location.href='how-to-install.html'">How to install</button>
+    <button id="exportBtn">Export</button>
+    <input type="file" id="importFile" accept=".json,application/json" style="display:none;">
+    <button id="importBtn">Import</button>
+    <select id="mode">
+      <option value="word">Show: Word</option>
+      <option value="sentence">Show: Sentence</option>
+      <option value="both" selected>Show: Both</option>
+    </select>
+  </div>
+
+  <div id="card" class="card" tabindex="0" role="button" aria-label="Flashcard (tap to flip)">
+    <div id="word" class="word"></div>
+    <div id="sentence" class="sentence"></div>
+  </div>
+
+  <div class="controls">
+    <input id="newWord" placeholder="new word" minlength="1"/>
+    <input id="newSentence" placeholder="example sentence"/>
+    <button id="addBtn">Add</button>
+  </div>
+
+  <div class="hint">Tip: Tap the card or press “Flip”. Swipe left/right or use Prev/Next. Default folders are read-only; your additions are saved under the same folder name locally.</div>
+  <div class="pill" id="status"></div>
+</div>
+
 <script>
+if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js')); }
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const installBtn = document.getElementById('installBtn');
+  installBtn.hidden = false;
+  installBtn.onclick = async () => {
+    installBtn.hidden = true;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+  };
+});
+
 const DEFAULT_SETS = {"Top 20": [["the", "The cat is on the bed."], ["of", "A glass of water."], ["and", "You and I are friends."], ["a", "I see a dog."], ["to", "I go to school."], ["in", "The book is in the bag."], ["is", "She is happy."], ["you", "You are my friend."], ["that", "I like that toy."], ["it", "It is raining."], ["he", "He is my brother."], ["was", "She was at the park."], ["for", "This gift is for you."], ["on", "The ball is on the table."], ["are", "We are ready."], ["as", "Run as fast as you can."], ["with", "I play with my dog."], ["his", "This is his book."], ["they", "They are at school."], ["I", "I can read."]], "Level 2 (Early Primer, 30)": [["am", "I am ready."], ["at", "We are at home."], ["ate", "I ate lunch."], ["be", "Please be kind."], ["black", "The cat is black."], ["brown", "The bear is brown."], ["but", "I want to play, but I must read."], ["came", "She came to class."], ["did", "He did his work."], ["do", "Do your best."], ["eat", "We eat together."], ["four", "I have four books."], ["get", "Go get your coat."], ["good", "That is a good idea."], ["have", "We have time."], ["into", "Walk into the room."], ["like", "I like this game."], ["must", "You must try."], ["new", "This book is new."], ["no", "No, thank you."], ["now", "Read it now."], ["on", "The hat is on me."], ["our", "This is our team."], ["out", "Go out to play."], ["please", "Please help me."], ["pretty", "The flower is pretty."], ["ran", "He ran fast."], ["ride", "I ride my bike."], ["saw", "We saw a bird."], ["so", "It was cold, so I wore a coat."]], "Level 3 (First Grade, 30)": [["after", "After lunch we read."], ["again", "Try again."], ["an", "I ate an apple."], ["any", "Do you have any?"], ["as", "Run as fast as you can."], ["ask", "Ask a question."], ["by", "Stand by me."], ["could", "I could help you."], ["every", "Every day we learn."], ["fly", "Birds can fly."], ["from", "This is from me."], ["give", "Please give me a pen."], ["going", "We are going home."], ["had", "She had a snack."], ["has", "He has a book."], ["her", "This is her hat."], ["him", "I will help him."], ["how", "How are you?"], ["just", "Just do it."], ["know", "I know the answer."], ["let", "Let me try."], ["live", "We live here."], ["many", "We saw many stars."], ["old", "That car is old."], ["once", "Once we went camping."], ["open", "Open the door."], ["over", "Jump over the line."], ["put", "Put it away."], ["round", "Draw a round circle."], ["some", "I have some water."]]};
-// simplified: just to prove file bundling, real JS logic omitted for brevity
-document.getElementById('app').innerText = "App loaded with folders: " + Object.keys(DEFAULT_SETS).join(", ");
+const STORAGE_KEY = 'sight_words_sets_json_v3';
+let SETS = {};
+try { const raw = localStorage.getItem(STORAGE_KEY); SETS = raw ? JSON.parse(raw) : {}; } catch { SETS = {}; }
+
+const folderSel = document.getElementById('folderSel');
+const countPill = document.getElementById('countPill');
+const statusEl = document.getElementById('status');
+const modeSel = document.getElementById('mode');
+const card = document.getElementById('card');
+const wordEl = document.getElementById('word');
+const sentenceEl = document.getElementById('sentence');
+
+function foldersList() {
+  const names = Object.keys(DEFAULT_SETS).concat(Object.keys(SETS).filter(n => !Object.keys(DEFAULT_SETS).includes(n)));
+  return [...new Set(names)];
+}
+function saveSets() { localStorage.setItem(STORAGE_KEY, JSON.stringify(SETS)); }
+function selectFolderOptions() {
+  const current = folderSel.value;
+  folderSel.innerHTML = '';
+  for (const name of foldersList()) {
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    folderSel.appendChild(opt);
+  }
+  if (foldersList().includes(current)) folderSel.value = current;
+  else folderSel.value = foldersList()[0];
+}
+function getFolderData(name) {
+  const base = DEFAULT_SETS[name] || [];
+  const custom = SETS[name] || [];
+  return base.concat(custom);
+}
+
+let activeFolder = "Top 20";
+selectFolderOptions();
+if (!foldersList().includes(activeFolder)) activeFolder = foldersList()[0];
+
+let data = getFolderData(activeFolder);
+let order = [...Array(data.length).keys()];
+let i = 0;
+let flipped = false;
+
+function updateCount() { countPill.textContent = `${data.length} cards`; }
+function render() {
+  if (!data.length) {
+    wordEl.textContent = "(empty)";
+    sentenceEl.textContent = "Add words to this folder, or choose another folder.";
+    statusEl.textContent = `Card 0 / 0 • ${activeFolder}`;
+    updateCount();
+    return;
+  }
+  const idx = order[i];
+  const [w, s] = data[idx];
+  const mode = modeSel.value;
+  if (mode === 'word') { wordEl.textContent = w; sentenceEl.textContent = flipped ? s : ''; }
+  else if (mode === 'sentence') { wordEl.textContent = flipped ? w : ''; sentenceEl.textContent = s; }
+  else { wordEl.textContent = w; sentenceEl.textContent = s; }
+  statusEl.textContent = `Card ${i+1} / ${data.length} • ${activeFolder}`;
+  updateCount();
+}
+
+function flip() { flipped = !flipped; render(); }
+function next() { if (!data.length) return; i = (i + 1) % data.length; flipped = false; render(); }
+function prev() { if (!data.length) return; i = (i - 1 + data.length) % data.length; flipped = false; render(); }
+function shuffle() {
+  for (let j = order.length - 1; j > 0; j--) { const k = Math.floor(Math.random() * (j + 1)); [order[j], order[k]] = [order[k], order[j]]; }
+  i = 0; flipped = false; render();
+}
+document.getElementById('flipBtn').onclick = flip;
+document.getElementById('nextBtn').onclick = next;
+document.getElementById('prevBtn').onclick = prev;
+document.getElementById('shuffleBtn').onclick = shuffle;
+modeSel.onchange = () => { flipped = false; render(); };
+
+card.addEventListener('click', flip);
+card.addEventListener('keydown', (e) => {
+  if (e.key === ' ' || e.key.toLowerCase() === 'f') flip();
+  if (e.key === 'ArrowRight') next();
+  if (e.key === 'ArrowLeft') prev();
+});
+let touchStartX = null;
+card.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
+card.addEventListener('touchend', (e) => {
+  const dx = e.changedTouches[0].screenX - touchStartX;
+  if (Math.abs(dx) > 50) { if (dx < 0) next(); else prev(); } else { flip(); }
+}, {passive: true});
+
+document.getElementById('addBtn').onclick = () => {
+  const w = document.getElementById('newWord').value.trim();
+  const s = document.getElementById('newSentence').value.trim();
+  if (!w || !s) return;
+  if (!SETS[activeFolder]) SETS[activeFolder] = [];
+  SETS[activeFolder].push([w, s]);
+  saveSets();
+  data = getFolderData(activeFolder);
+  order = [...Array(data.length).keys()];
+  i = data.length - 1; flipped = false;
+  document.getElementById('newWord').value = '';
+  document.getElementById('newSentence').value = '';
+  render();
+};
+
+folderSel.onchange = () => {
+  activeFolder = folderSel.value;
+  data = getFolderData(activeFolder);
+  order = [...Array(data.length).keys()];
+  i = 0; flipped = false; render();
+};
+document.getElementById('newFolderBtn').onclick = () => {
+  const name = prompt('New folder name:');
+  if (!name) return;
+  if (!SETS[name] && !DEFAULT_SETS[name]) SETS[name] = [];
+  else return alert('Folder already exists.');
+  saveSets();
+  selectFolderOptions();
+  folderSel.value = name; folderSel.onchange();
+};
+document.getElementById('renameFolderBtn').onclick = () => {
+  if (!SETS[activeFolder]) return alert('Default folders cannot be renamed.');
+  const newName = prompt('Rename folder:', activeFolder);
+  if (!newName || newName === activeFolder) return;
+  if (SETS[newName] || DEFAULT_SETS[newName]) return alert('Name already exists.');
+  SETS[newName] = SETS[activeFolder];
+  delete SETS[activeFolder];
+  saveSets();
+  selectFolderOptions();
+  folderSel.value = newName; folderSel.onchange();
+};
+document.getElementById('deleteFolderBtn').onclick = () => {
+  if (!SETS[activeFolder]) return alert('Default folders cannot be deleted.');
+  if (!confirm(`Delete folder "${activeFolder}"? This cannot be undone.`)) return;
+  delete SETS[activeFolder];
+  saveSets();
+  selectFolderOptions();
+  folderSel.value = "Top 20"; folderSel.onchange();
+};
+
+function speak(text) {
+  if (!('speechSynthesis' in window)) return alert('Text-to-Speech not supported on this device.');
+  const u = new SpeechSynthesisUtterance(text);
+  const vs = speechSynthesis.getVoices();
+  const en = vs.find(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+  if (en) u.voice = en;
+  speechSynthesis.cancel(); speechSynthesis.speak(u);
+}
+function spell(text) { const letters = text.split('').join(', '); speak(letters + '. ' + text); }
+document.getElementById('speakBtn').onclick = () => { if (!data.length) return; const [w,s]=data[order[i]]; const m=modeSel.value; if (m==='word') speak(w); else if (m==='sentence') speak(s); else speak(`${w}. ${s}`); };
+document.getElementById('spellBtn').onclick = () => { if (!data.length) return; const [w]=data[order[i]]; spell(w); };
+
+const exportBtn = document.getElementById('exportBtn');
+const importBtn = document.getElementById('importBtn');
+const importFile = document.getElementById('importFile');
+function download(filename, text) {
+  const blob = new Blob([text], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+exportBtn.onclick = () => download('sight_words_sets.json', JSON.stringify({ sets: SETS }, null, 2));
+importBtn.onclick = () => importFile.click();
+importFile.addEventListener('change', (e) => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      let incoming = {};
+      if (parsed && parsed.sets && typeof parsed.sets === 'object') incoming = parsed.sets;
+      else if (Array.isArray(parsed)) incoming = { Imported: parsed };
+      else throw new Error('Invalid file format');
+      for (const [folder, items] of Object.entries(incoming)) {
+        if (!Array.isArray(items)) continue;
+        if (!SETS[folder]) SETS[folder] = [];
+        const key = (w, s) => (String(w).trim().toLowerCase() + '|' + String(s).trim().toLowerCase());
+        const existing = new Set(SETS[folder].map(([w,s]) => key(w,s)));
+        for (const item of items) {
+          if (Array.isArray(item) && item.length >= 2) {
+            const w = String(item[0]).trim(); const s = String(item[1]).trim();
+            const k = key(w,s);
+            if (!existing.has(k)) { SETS[folder].push([w,s]); existing.add(k); }
+          }
+        }
+      }
+      saveSets(); selectFolderOptions(); folderSel.onchange();
+      alert('Import complete.');
+      importFile.value = '';
+    } catch (err) {
+      console.error(err); alert('Could not import file.');
+    }
+  };
+  reader.readAsText(file);
+});
+
+render();
 </script>
 </body>
 </html>
