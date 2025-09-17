@@ -3,7 +3,7 @@
 A simple flashcard app for practicing sight words.  
 Works in any browser (desktop, Android, iOS).  
 
-👉 **Live app link:** (fill in after Pages deploy)
+👉 **Live app link:** (https://github.com/Crownedink/Spelling-SightWords.git)
 
 ---
 
