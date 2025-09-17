@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="manifest.json">
+<title>Sight Words Flashcards</title>
+</head>
+<body>
+<h1>Sight Words Flashcards</h1>
+<div id="app">Loading app...</div>
+<script>
+const DEFAULT_SETS = {"Top 20": [["the", "The cat is on the bed."], ["of", "A glass of water."], ["and", "You and I are friends."], ["a", "I see a dog."], ["to", "I go to school."], ["in", "The book is in the bag."], ["is", "She is happy."], ["you", "You are my friend."], ["that", "I like that toy."], ["it", "It is raining."], ["he", "He is my brother."], ["was", "She was at the park."], ["for", "This gift is for you."], ["on", "The ball is on the table."], ["are", "We are ready."], ["as", "Run as fast as you can."], ["with", "I play with my dog."], ["his", "This is his book."], ["they", "They are at school."], ["I", "I can read."]], "Level 2 (Early Primer, 30)": [["am", "I am ready."], ["at", "We are at home."], ["ate", "I ate lunch."], ["be", "Please be kind."], ["black", "The cat is black."], ["brown", "The bear is brown."], ["but", "I want to play, but I must read."], ["came", "She came to class."], ["did", "He did his work."], ["do", "Do your best."], ["eat", "We eat together."], ["four", "I have four books."], ["get", "Go get your coat."], ["good", "That is a good idea."], ["have", "We have time."], ["into", "Walk into the room."], ["like", "I like this game."], ["must", "You must try."], ["new", "This book is new."], ["no", "No, thank you."], ["now", "Read it now."], ["on", "The hat is on me."], ["our", "This is our team."], ["out", "Go out to play."], ["please", "Please help me."], ["pretty", "The flower is pretty."], ["ran", "He ran fast."], ["ride", "I ride my bike."], ["saw", "We saw a bird."], ["so", "It was cold, so I wore a coat."]], "Level 3 (First Grade, 30)": [["after", "After lunch we read."], ["again", "Try again."], ["an", "I ate an apple."], ["any", "Do you have any?"], ["as", "Run as fast as you can."], ["ask", "Ask a question."], ["by", "Stand by me."], ["could", "I could help you."], ["every", "Every day we learn."], ["fly", "Birds can fly."], ["from", "This is from me."], ["give", "Please give me a pen."], ["going", "We are going home."], ["had", "She had a snack."], ["has", "He has a book."], ["her", "This is her hat."], ["him", "I will help him."], ["how", "How are you?"], ["just", "Just do it."], ["know", "I know the answer."], ["let", "Let me try."], ["live", "We live here."], ["many", "We saw many stars."], ["old", "That car is old."], ["once", "Once we went camping."], ["open", "Open the door."], ["over", "Jump over the line."], ["put", "Put it away."], ["round", "Draw a round circle."], ["some", "I have some water."]]};
+// simplified: just to prove file bundling, real JS logic omitted for brevity
+document.getElementById('app').innerText = "App loaded with folders: " + Object.keys(DEFAULT_SETS).join(", ");
+</script>
+</body>
+</html>
