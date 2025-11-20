@@ -780,6 +780,7 @@
   const menuOverlay = document.getElementById('menuOverlay');
   const menuToggle = document.getElementById('menuToggle');
   const menuLinks = sideMenu.querySelectorAll('button[data-view]');
+
   function openMenu() {
     sideMenu.classList.add('open');
     menuOverlay.classList.add('show');
@@ -909,7 +910,7 @@
   try {
     const raw = localStorage.getItem(STORAGE_KEY_SETS);
     SETS = raw ? JSON.parse(raw) : {};
-  } catch {
+  } catch (e) {
     SETS = {};
   }
 
@@ -962,7 +963,9 @@
   function shuffleOrder(arr) {
     for (let j = arr.length - 1; j > 0; j--) {
       const k = Math.floor(Math.random() * (j + 1));
-      [arr[j], arr[k]] = [arr[k], arr[j]];
+      const temp = arr[j];
+      arr[j] = arr[k];
+      arr[k] = temp;
     }
   }
 
@@ -974,12 +977,14 @@
     if (!data.length) {
       wordEl.textContent = "(empty)";
       sentenceEl.textContent = "Add words to this folder, or choose another folder.";
-      statusEl.textContent = `Card 0 / 0 • ${activeFolder}`;
+      statusEl.textContent = "Card 0 / 0 • " + activeFolder;
       updateCount();
       return;
     }
     const idx = order[i];
-    const [w, s] = data[idx];
+    const pair = data[idx];
+    const w = pair[0];
+    const s = pair[1];
     const mode = modeSel.value;
     if (mode === 'word') {
       wordEl.textContent = w;
@@ -991,7 +996,7 @@
       wordEl.textContent = w;
       sentenceEl.textContent = s;
     }
-    statusEl.textContent = `Card ${i + 1} / ${data.length} • ${activeFolder}`;
+    statusEl.textContent = "Card " + (i + 1) + " / " + data.length + " • " + activeFolder;
     updateCount();
   }
 
@@ -1020,19 +1025,19 @@
   document.getElementById('nextBtn').onclick = nextFlashcard;
   document.getElementById('flipBtn').onclick = flipFlashcard;
   document.getElementById('shuffleBtn').onclick = shuffleFlashcards;
-  modeSel.onchange = () => { flipped = false; renderFlashcard(); };
+  modeSel.onchange = function () { flipped = false; renderFlashcard(); };
 
   card.addEventListener('click', flipFlashcard);
-  card.addEventListener('keydown', (e) => {
+  card.addEventListener('keydown', function (e) {
     if (e.key === ' ' || e.key.toLowerCase() === 'f') { e.preventDefault(); flipFlashcard(); }
     if (e.key === 'ArrowRight') { e.preventDefault(); nextFlashcard(); }
     if (e.key === 'ArrowLeft') { e.preventDefault(); prevFlashcard(); }
   });
 
-  folderSel.onchange = () => {
+  folderSel.onchange = function () {
     activeFolder = folderSel.value;
     data = getFolderData(activeFolder);
-    order = data.map((_, idx) => idx);
+    order = data.map(function (_, idx) { return idx; });
     i = 0;
     flipped = false;
     renderFlashcard();
@@ -1040,7 +1045,7 @@
     resetSpellingState();
   };
 
-  document.getElementById('addBtn').onclick = () => {
+  document.getElementById('addBtn').onclick = function () {
     const w = document.getElementById('newWord').value.trim();
     const s = document.getElementById('newSentence').value.trim();
     if (!w || !s) return;
@@ -1048,7 +1053,7 @@
     SETS[activeFolder].push([w, s]);
     saveSets();
     data = getFolderData(activeFolder);
-    order = data.map((_, idx) => idx);
+    order = data.map(function (_, idx) { return idx; });
     i = data.length - 1;
     flipped = false;
     document.getElementById('newWord').value = '';
@@ -1061,12 +1066,15 @@
   // Sight words menu
   const sightMenuToggle = document.getElementById('sightMenuToggle');
   const sightMenuPanel = document.getElementById('sightMenuPanel');
-  sightMenuToggle.onclick = () => {
-    sightMenuPanel.style.display =
-      (sightMenuPanel.style.display === 'none' || sightMenuPanel.style.display === '') ? 'block' : 'none';
+  sightMenuToggle.onclick = function () {
+    if (sightMenuPanel.style.display === 'none' || sightMenuPanel.style.display === '') {
+      sightMenuPanel.style.display = 'block';
+    } else {
+      sightMenuPanel.style.display = 'none';
+    }
   };
 
-  document.getElementById('newFolderBtn').onclick = () => {
+  document.getElementById('newFolderBtn').onclick = function () {
     const name = prompt('New folder name:');
     if (!name) return;
     if (SETS[name] || DEFAULT_SETS[name]) {
@@ -1079,7 +1087,7 @@
     folderSel.value = name;
     folderSel.onchange();
   };
-  document.getElementById('renameFolderBtn').onclick = () => {
+  document.getElementById('renameFolderBtn').onclick = function () {
     if (!SETS[activeFolder]) {
       alert('Default folders cannot be renamed.');
       return;
@@ -1097,12 +1105,12 @@
     folderSel.value = newName;
     folderSel.onchange();
   };
-  document.getElementById('deleteFolderBtn').onclick = () => {
+  document.getElementById('deleteFolderBtn').onclick = function () {
     if (!SETS[activeFolder]) {
       alert('Default folders cannot be deleted.');
       return;
     }
-    if (!confirm(`Delete folder "${activeFolder}"? This cannot be undone.`)) return;
+    if (!confirm('Delete folder "' + activeFolder + '"? This cannot be undone.')) return;
     delete SETS[activeFolder];
     saveSets();
     selectFolderOptions();
@@ -1115,7 +1123,7 @@
   const importBtn = document.getElementById('importBtn');
   const importFile = document.getElementById('importFile');
   function downloadFile(filename, text) {
-    const blob = new Blob([text], {type:'application/json'});
+    const blob = new Blob([text], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -1125,15 +1133,15 @@
     a.remove();
     URL.revokeObjectURL(url);
   }
-  exportBtn.onclick = () => {
+  exportBtn.onclick = function () {
     downloadFile('sight_words_sets.json', JSON.stringify({ sets: SETS }, null, 2));
   };
-  importBtn.onclick = () => importFile.click();
-  importFile.addEventListener('change', (e) => {
+  importBtn.onclick = function () { importFile.click(); };
+  importFile.addEventListener('change', function (e) {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = function () {
       try {
         const parsed = JSON.parse(reader.result);
         let incoming = {};
@@ -1142,18 +1150,22 @@
         } else if (Array.isArray(parsed)) {
           incoming = { Imported: parsed };
         } else throw new Error('Invalid file format');
-        for (const [folder, items] of Object.entries(incoming)) {
+        for (const folder in incoming) {
+          const items = incoming[folder];
           if (!Array.isArray(items)) continue;
           if (!SETS[folder]) SETS[folder] = [];
-          const key = (w,s) => String(w).trim().toLowerCase() + '|' + String(s).trim().toLowerCase();
-          const existing = new Set(SETS[folder].map(([w,s]) => key(w,s)));
-          for (const item of items) {
+          const key = function (w, s) { return String(w).trim().toLowerCase() + '|' + String(s).trim().toLowerCase(); };
+          const existing = new Set(SETS[folder].map(function (pair) {
+            return key(pair[0], pair[1]);
+          }));
+          for (let idx = 0; idx < items.length; idx++) {
+            const item = items[idx];
             if (Array.isArray(item) && item.length >= 2) {
               const w = String(item[0]).trim();
               const s = String(item[1]).trim();
-              const k = key(w,s);
+              const k = key(w, s);
               if (!existing.has(k)) {
-                SETS[folder].push([w,s]);
+                SETS[folder].push([w, s]);
                 existing.add(k);
               }
             }
@@ -1180,7 +1192,7 @@
     }
     const u = new SpeechSynthesisUtterance(text);
     const vs = speechSynthesis.getVoices();
-    const en = vs.find(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+    const en = vs.find(function (v) { return v.lang && v.lang.toLowerCase().indexOf('en') === 0; });
     if (en) u.voice = en;
     speechSynthesis.cancel();
     speechSynthesis.speak(u);
@@ -1189,34 +1201,37 @@
     const letters = text.split('').join(', ');
     speak(letters + '. ' + text);
   }
-  document.getElementById('speakBtn').onclick = () => {
+  document.getElementById('speakBtn').onclick = function () {
     if (!data.length) return;
-    const [w, s] = data[order[i]];
+    const pair = data[order[i]];
+    const w = pair[0];
+    const s = pair[1];
     const m = modeSel.value;
     if (m === 'word') speak(w);
     else if (m === 'sentence') speak(s);
     else speak(w + '. ' + s);
   };
-  document.getElementById('spellBtn').onclick = () => {
+  document.getElementById('spellBtn').onclick = function () {
     if (!data.length) return;
-    const [w] = data[order[i]];
+    const pair = data[order[i]];
+    const w = pair[0];
     spellWord(w);
   };
 
   // Sight subnav
   const sightSubnavButtons = document.querySelectorAll('.subnav button[data-sightmode]');
   function setSightMode(mode) {
-    sightSubnavButtons.forEach(btn => {
+    sightSubnavButtons.forEach(function (btn) {
       btn.classList.toggle('active', btn.dataset.sightmode === mode);
     });
-    document.querySelectorAll('.sight-mode').forEach(sec => sec.style.display = 'none');
+    document.querySelectorAll('.sight-mode').forEach(function (sec) { sec.style.display = 'none'; });
     document.getElementById('sight-' + mode).style.display = 'block';
     if (mode === 'quiz') { resetQuizState(); setupQuizQuestion(); }
     if (mode === 'spelling') { resetSpellingState(); }
     if (mode === 'challenge') { resetSwChallengeState(); }
   }
-  sightSubnavButtons.forEach(btn => {
-    btn.addEventListener('click', () => setSightMode(btn.dataset.sightmode));
+  sightSubnavButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () { setSightMode(btn.dataset.sightmode); });
   });
 
   // Quiz mode
@@ -1230,7 +1245,7 @@
   const quizCard = document.getElementById('quizCard');
 
   function resetQuizState() {
-    quizState.order = data.map((_, idx) => idx);
+    quizState.order = data.map(function (_, idx) { return idx; });
     shuffleOrder(quizState.order);
     quizState.currentIndex = 0;
     quizState.score = 0;
@@ -1238,9 +1253,9 @@
     clearQuizChoices();
   }
   function clearQuizChoices() {
-    quizChoiceButtons.forEach(btn => {
+    quizChoiceButtons.forEach(function (btn) {
       btn.textContent = '';
-      btn.classList.remove('correct','incorrect');
+      btn.classList.remove('correct', 'incorrect');
       btn.disabled = true;
       btn.dataset.correct = '0';
     });
@@ -1253,25 +1268,28 @@
       return;
     }
     if (!quizState.order.length) {
-      quizState.order = data.map((_, idx) => idx);
+      quizState.order = data.map(function (_, idx) { return idx; });
       shuffleOrder(quizState.order);
       quizState.currentIndex = 0;
     }
     const idx = quizState.order[quizState.currentIndex];
-    const [w, s] = data[idx];
+    const pair = data[idx];
+    const w = pair[0];
+    const s = pair[1];
     quizPromptEl.textContent = 'Tap the card to hear the word.';
     quizSentenceHintEl.textContent = s + '  (Swipe left or right to advance.)';
-    const allIdx = data.map((_, i) => i);
-    const distractors = allIdx.filter(j => j !== idx);
+    const allIdx = data.map(function (_, i) { return i; });
+    const distractors = allIdx.filter(function (j) { return j !== idx; });
     shuffleOrder(distractors);
     const choiceIdxs = [idx].concat(distractors.slice(0, 3));
     shuffleOrder(choiceIdxs);
-    quizChoiceButtons.forEach((btn, i) => {
-      if (i < choiceIdxs.length) {
-        const [cw] = data[choiceIdxs[i]];
+    quizChoiceButtons.forEach(function (btn, k) {
+      if (k < choiceIdxs.length) {
+        const pair2 = data[choiceIdxs[k]];
+        const cw = pair2[0];
         btn.textContent = cw;
-        btn.dataset.correct = (choiceIdxs[i] === idx) ? '1' : '0';
-        btn.classList.remove('correct','incorrect');
+        btn.dataset.correct = (choiceIdxs[k] === idx) ? '1' : '0';
+        btn.classList.remove('correct', 'incorrect');
         btn.disabled = false;
       } else {
         btn.textContent = '';
@@ -1280,23 +1298,23 @@
       }
     });
   }
-  quizPlayBtn.onclick = () => {
+  quizPlayBtn.onclick = function () {
     if (!data.length) return;
     const idx = quizState.order[quizState.currentIndex];
-    const [w] = data[idx];
+    const w = data[idx][0];
     speak(w);
   };
-  quizCard.onclick = () => {
+  quizCard.onclick = function () {
     if (!data.length) return;
     const idx = quizState.order[quizState.currentIndex];
-    const [w] = data[idx];
+    const w = data[idx][0];
     speak(w);
   };
-  quizChoiceButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
+  quizChoiceButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
       if (!btn.textContent) return;
       const isCorrect = btn.dataset.correct === '1';
-      quizChoiceButtons.forEach(b => {
+      quizChoiceButtons.forEach(function (b) {
         if (!b.textContent) return;
         if (b.dataset.correct === '1') b.classList.add('correct');
         else b.classList.add('incorrect');
@@ -1308,17 +1326,17 @@
       }
     });
   });
-  quizNextBtn.onclick = () => {
+  quizNextBtn.onclick = function () {
     if (!data.length) return;
     quizState.currentIndex = (quizState.currentIndex + 1) % data.length;
     setupQuizQuestion();
   };
   // Quiz swipe
   let quizTouchStartX = null;
-  quizCard.addEventListener('touchstart', (e) => {
+  quizCard.addEventListener('touchstart', function (e) {
     quizTouchStartX = e.changedTouches[0].screenX;
-  }, {passive:true});
-  quizCard.addEventListener('touchend', (e) => {
+  }, { passive: true });
+  quizCard.addEventListener('touchend', function (e) {
     if (quizTouchStartX === null) return;
     const dx = e.changedTouches[0].screenX - quizTouchStartX;
     if (Math.abs(dx) > 50) {
@@ -1326,7 +1344,7 @@
       setupQuizQuestion();
     }
     quizTouchStartX = null;
-  }, {passive:true});
+  }, { passive: true });
 
   // Spelling mode
   let spellingState = { order: [], currentIndex: 0, correctCount: 0 };
@@ -1339,7 +1357,7 @@
   const spellCard = document.getElementById('spellCard');
 
   function resetSpellingState() {
-    spellingState.order = data.map((_, idx) => idx);
+    spellingState.order = data.map(function (_, idx) { return idx; });
     shuffleOrder(spellingState.order);
     spellingState.currentIndex = 0;
     spellingState.correctCount = 0;
@@ -1352,32 +1370,34 @@
       return;
     }
     if (!spellingState.order.length) {
-      spellingState.order = data.map((_, idx) => idx);
+      spellingState.order = data.map(function (_, idx) { return idx; });
       shuffleOrder(spellingState.order);
       spellingState.currentIndex = 0;
     }
     const idx = spellingState.order[spellingState.currentIndex];
-    const [w, s] = data[idx];
+    const pair = data[idx];
+    const w = pair[0];
+    const s = pair[1];
     spellSentenceHintEl.textContent = s;
     spellInput.value = '';
-    spellStatusEl.textContent = `Word ${spellingState.currentIndex + 1} of ${data.length}`;
+    spellStatusEl.textContent = 'Word ' + (spellingState.currentIndex + 1) + ' of ' + data.length;
   }
-  spellPlayWordBtn.onclick = () => {
+  spellPlayWordBtn.onclick = function () {
     if (!data.length) return;
     const idx = spellingState.order[spellingState.currentIndex];
-    const [w] = data[idx];
+    const w = data[idx][0];
     speak(w);
   };
-  spellPlayLettersBtn.onclick = () => {
+  spellPlayLettersBtn.onclick = function () {
     if (!data.length) return;
     const idx = spellingState.order[spellingState.currentIndex];
-    const [w] = data[idx];
+    const w = data[idx][0];
     spellWord(w);
   };
   function checkSpellingAnswer() {
     if (!data.length) return;
     const idx = spellingState.order[spellingState.currentIndex];
-    const [w] = data[idx];
+    const w = data[idx][0];
     const answer = spellInput.value.trim().toLowerCase();
     if (!answer) return;
     const target = w.toLowerCase();
@@ -1385,26 +1405,26 @@
       spellingState.correctCount += 1;
       spellStatusEl.textContent = 'Correct! ✅';
     } else {
-      spellStatusEl.textContent = `Try again or swipe to move on. The word is "${w}".`;
+      spellStatusEl.textContent = 'Try again or swipe to move on. The word is "' + w + '".';
     }
   }
-  spellInput.addEventListener('keydown', (e) => {
+  spellInput.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') {
       e.preventDefault();
       checkSpellingAnswer();
     }
   });
-  spellNextBtn.onclick = () => {
+  spellNextBtn.onclick = function () {
     if (!data.length) return;
     spellingState.currentIndex = (spellingState.currentIndex + 1) % data.length;
     setupSpellingQuestion();
-  });
+  };
   // Spelling swipe
   let spellTouchStartX = null;
-  spellCard.addEventListener('touchstart', (e) => {
+  spellCard.addEventListener('touchstart', function (e) {
     spellTouchStartX = e.changedTouches[0].screenX;
-  }, {passive:true});
-  spellCard.addEventListener('touchend', (e) => {
+  }, { passive: true });
+  spellCard.addEventListener('touchend', function (e) {
     if (spellTouchStartX === null) return;
     const dx = e.changedTouches[0].screenX - spellTouchStartX;
     if (Math.abs(dx) > 50) {
@@ -1412,15 +1432,17 @@
       setupSpellingQuestion();
     }
     spellTouchStartX = null;
-  }, {passive:true});
+  }, { passive: true });
 
   // Sight challenge 60 (spelling only)
   const SW_CHALLENGE_KEY = 'sw_challenge_scores_v2';
   let swChallengeScores = [];
   try {
-    const raw = localStorage.getItem(SW_CHALLENGE_KEY);
-    if (raw) swChallengeScores = JSON.parse(raw);
-  } catch { swChallengeScores = []; }
+    const rawSw = localStorage.getItem(SW_CHALLENGE_KEY);
+    if (rawSw) swChallengeScores = JSON.parse(rawSw);
+  } catch (e) {
+    swChallengeScores = [];
+  }
   function saveSwChallengeScores() {
     localStorage.setItem(SW_CHALLENGE_KEY, JSON.stringify(swChallengeScores));
   }
@@ -1429,26 +1451,28 @@
   const swLeaderboardPageEl = document.getElementById('swLeaderboardPage');
 
   function renderSwHomeTop() {
-    const list = swChallengeScores.slice().sort((a,b)=>b.score-a.score);
+    const list = swChallengeScores.slice().sort(function (a, b) { return b.score - a.score; });
     if (!list.length) {
       homeSwTopEl.innerHTML = '<div class="hint">Sight Words Challenge: no scores yet.</div>';
       return;
     }
     const best = list[0];
     homeSwTopEl.innerHTML =
-      `<div class="leaderboard-row"><span>Sight Words Challenge</span><span class="score">${best.score} pts (${best.name || 'Player'})</span></div>`;
+      '<div class="leaderboard-row"><span>Sight Words Challenge</span><span class="score">' +
+      best.score + ' pts (' + (best.name || 'Player') + ')</span></div>';
   }
   function renderSwLeaderboardPage() {
-    const list = swChallengeScores.slice().sort((a,b)=>b.score-a.score).slice(0,10);
+    const list = swChallengeScores.slice().sort(function (a, b) { return b.score - a.score; }).slice(0, 10);
     if (!list.length) {
       swLeaderboardPageEl.innerHTML = '<div class="hint">No scores yet. Play Challenge 60 to set a record.</div>';
       return;
     }
     swLeaderboardPageEl.innerHTML = '';
-    list.forEach((entry, idx) => {
+    list.forEach(function (entry, idx) {
       const row = document.createElement('div');
       row.className = 'leaderboard-row';
-      row.innerHTML = `<span>${idx+1}. ${entry.name || 'Player'}</span><span class="score">${entry.score}</span>`;
+      row.innerHTML = '<span>' + (idx + 1) + '. ' + (entry.name || 'Player') +
+        '</span><span class="score">' + entry.score + '</span>';
       swLeaderboardPageEl.appendChild(row);
     });
   }
@@ -1488,7 +1512,7 @@
     swChallengeState = {
       score: 0,
       remaining: 60,
-      indexOrder: data.map((_, idx) => idx),
+      indexOrder: data.map(function (_, idx) { return idx; }),
       answered: [],
       currentIdx: null
     };
@@ -1500,7 +1524,7 @@
     swChallengeCard.classList.remove('sparkle');
     if (swChallengeTimerId) clearInterval(swChallengeTimerId);
     swChallengeTimerEl.textContent = 'Time: 60';
-    swChallengeTimerId = setInterval(() => {
+    swChallengeTimerId = setInterval(function () {
       if (!swChallengeState) return;
       swChallengeState.remaining -= 1;
       if (swChallengeState.remaining <= 0) {
@@ -1516,12 +1540,14 @@
   function nextSwChallengeQuestion(autoPlay) {
     if (!swChallengeState) return;
     if (!swChallengeState.indexOrder.length) {
-      swChallengeState.indexOrder = data.map((_, idx) => idx);
+      swChallengeState.indexOrder = data.map(function (_, idx) { return idx; });
       shuffleOrder(swChallengeState.indexOrder);
     }
     const idx = swChallengeState.indexOrder.pop();
     swChallengeState.currentIdx = idx;
-    const [w, s] = data[idx];
+    const pair = data[idx];
+    const w = pair[0];
+    const s = pair[1];
     swChallengeSentenceEl.textContent = s;
     swChallengeSpellInput.value = '';
     swChallengeCard.classList.remove('sparkle');
@@ -1529,15 +1555,15 @@
   }
 
   swChallengeStartBtn.onclick = startSwChallenge;
-  swChallengePlayWordBtn.onclick = () => {
+  swChallengePlayWordBtn.onclick = function () {
     if (!swChallengeState || swChallengeState.currentIdx == null) return;
-    const [w] = data[swChallengeState.currentIdx];
+    const w = data[swChallengeState.currentIdx][0];
     speak(w);
   };
 
   function checkSwChallengeAnswer() {
     if (!swChallengeState || swChallengeState.currentIdx == null) return;
-    const [w] = data[swChallengeState.currentIdx];
+    const w = data[swChallengeState.currentIdx][0];
     const answer = swChallengeSpellInput.value.trim().toLowerCase();
     if (!answer) return;
     const target = w.toLowerCase();
@@ -1551,16 +1577,16 @@
       question: w,
       userAnswer: answer,
       correctAnswer: w,
-      correct
+      correct: correct
     });
-    setTimeout(() => {
+    setTimeout(function () {
       if (!swChallengeState) return;
       swChallengeCard.classList.remove('sparkle');
       nextSwChallengeQuestion(true);
     }, 350);
   }
 
-  swChallengeSpellInput.addEventListener('keydown', (e) => {
+  swChallengeSpellInput.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') {
       e.preventDefault();
       checkSwChallengeAnswer();
@@ -1568,17 +1594,17 @@
   });
 
   let swChTouchStartX = null;
-  swChallengeCard.addEventListener('touchstart', (e) => {
+  swChallengeCard.addEventListener('touchstart', function (e) {
     swChTouchStartX = e.changedTouches[0].screenX;
-  }, {passive:true});
-  swChallengeCard.addEventListener('touchend', (e) => {
+  }, { passive: true });
+  swChallengeCard.addEventListener('touchend', function (e) {
     if (swChTouchStartX === null) return;
     const dx = e.changedTouches[0].screenX - swChTouchStartX;
     if (Math.abs(dx) > 50 && swChallengeState) {
       nextSwChallengeQuestion(true);
     }
     swChTouchStartX = null;
-  }, {passive:true});
+  }, { passive: true });
 
   function endSwChallenge() {
     if (swChallengeTimerId) {
@@ -1586,26 +1612,31 @@
       swChallengeTimerId = null;
     }
     if (!swChallengeState) return;
-    const { score, answered } = swChallengeState;
+    const score = swChallengeState.score;
+    const answered = swChallengeState.answered;
+
     swChallengeResults.style.display = 'block';
     swChallengeResultsList.innerHTML = '';
-      answered.forEach(entry => {
-    const row = document.createElement('div');
-    row.className = 'leaderboard-row';
 
-    const userAns = entry.userAnswer ? entry.userAnswer : '(blank)';
-    const mark = entry.correct ? '✅' : '❌';
+    answered.forEach(function (entry) {
+      const row = document.createElement('div');
+      row.className = 'leaderboard-row';
 
-    row.innerHTML =
-      '<span>' + entry.question + '</span>' +
-      '<span>' + userAns + ' → ' + entry.correctAnswer + ' ' + mark + '</span>';
+      const userAns = entry.userAnswer ? entry.userAnswer : '(blank)';
+      const mark = entry.correct ? '✅' : '❌';
 
-    swChallengeResultsList.appendChild(row);
-  });
+      row.innerHTML =
+        '<span>' + entry.question + '</span>' +
+        '<span>' + userAns + ' → ' + entry.correctAnswer + ' ' + mark + '</span>';
 
-    const newEntry = { score, date: Date.now(), name: '' };
-    const combined = swChallengeScores.concat([newEntry]).sort((a,b)=>b.score-a.score).slice(0,10);
-    const isHighScore = combined.includes(newEntry) && score > 0;
+      swChallengeResultsList.appendChild(row);
+    });
+
+    const newEntry = { score: score, date: Date.now(), name: '' };
+    const combined = swChallengeScores.concat([newEntry])
+      .sort(function (a, b) { return b.score - a.score; })
+      .slice(0, 10);
+    const isHighScore = combined.indexOf(newEntry) !== -1 && score > 0;
     if (isHighScore) {
       const name = prompt('New high score! Enter a name:') || 'Player';
       newEntry.name = name;
@@ -1629,7 +1660,9 @@
 
   function simpleBeep(correct) {
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = new Ctx();
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sine';
@@ -1641,42 +1674,43 @@
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
       osc.start();
       osc.stop(ctx.currentTime + 0.3);
-    } catch(e){}
+    } catch (e) {}
   }
 
   function generateMathProblem(type) {
-    let a,b,op,answer;
-    switch(type) {
+    let a, b, op, answer;
+    switch (type) {
       case 'addition':
-        a = Math.floor(Math.random()*10)+1;
-        b = Math.floor(Math.random()*10)+1;
+        a = Math.floor(Math.random() * 10) + 1;
+        b = Math.floor(Math.random() * 10) + 1;
         op = '+';
         answer = a + b;
         break;
       case 'subtraction':
-        a = Math.floor(Math.random()*10)+1;
-        b = Math.floor(Math.random()*a);
+        a = Math.floor(Math.random() * 10) + 1;
+        b = Math.floor(Math.random() * a);
         op = '−';
         answer = a - b;
         break;
       case 'multiplication':
-        a = Math.floor(Math.random()*10)+1;
-        b = Math.floor(Math.random()*10)+1;
+        a = Math.floor(Math.random() * 10) + 1;
+        b = Math.floor(Math.random() * 10) + 1;
         op = '×';
         answer = a * b;
         break;
       case 'division':
-        b = Math.floor(Math.random()*9)+1;
-        answer = Math.floor(Math.random()*10)+1;
+        b = Math.floor(Math.random() * 9) + 1;
+        answer = Math.floor(Math.random() * 10) + 1;
         a = answer * b;
         op = '÷';
         break;
       case 'mixed':
       default:
-        const types = ['addition','subtraction','multiplication','division'];
-        return generateMathProblem(types[Math.floor(Math.random()*types.length)]);
+        const types = ['addition', 'subtraction', 'multiplication', 'division'];
+        const randomType = types[Math.floor(Math.random() * types.length)];
+        return generateMathProblem(randomType);
     }
-    return { a,b,op,answer };
+    return { a: a, b: b, op: op, answer: answer };
   }
 
   function setupMathPractice() {
@@ -1684,32 +1718,32 @@
     mathPracticeState.type = type;
     mathPracticeState.current = generateMathProblem(type);
     const p = mathPracticeState.current;
-    mathPracticeProblemEl.textContent = `${p.a} ${p.op} ${p.b} = ?`;
+    mathPracticeProblemEl.textContent = p.a + ' ' + p.op + ' ' + p.b + ' = ?';
     mathPracticeAnswerEl.textContent = 'Choose an answer below.';
     mathPracticeCard.classList.remove('sparkle');
     const choices = new Set();
     choices.add(p.answer);
     while (choices.size < 4) {
-      const delta = Math.floor(Math.random()*10)-5;
+      const delta = Math.floor(Math.random() * 10) - 5;
       const c = p.answer + delta;
       if (c > 0) choices.add(c);
     }
     const arr = Array.from(choices);
     shuffleOrder(arr);
-    mathPracticeChoiceBtns.forEach((btn,i)=>{
-      const val = arr[i];
+    mathPracticeChoiceBtns.forEach(function (btn, idx) {
+      const val = arr[idx];
       btn.textContent = val;
-      btn.classList.remove('correct','incorrect');
+      btn.classList.remove('correct', 'incorrect');
       btn.disabled = false;
       btn.dataset.correct = (val === p.answer) ? '1' : '0';
     });
   }
 
-  mathPracticeChoiceBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
+  mathPracticeChoiceBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
       if (!mathPracticeState.current) return;
       const correct = btn.dataset.correct === '1';
-      mathPracticeChoiceBtns.forEach(b => {
+      mathPracticeChoiceBtns.forEach(function (b) {
         if (b.dataset.correct === '1') b.classList.add('correct');
         else b.classList.add('incorrect');
         b.disabled = true;
@@ -1726,7 +1760,7 @@
         mathPracticeCard.classList.remove('sparkle');
         simpleBeep(false);
       }
-      setTimeout(() => {
+      setTimeout(function () {
         mathPracticeCard.classList.remove('sparkle');
         setupMathPractice();
       }, 450);
@@ -1734,24 +1768,26 @@
   });
   // Math practice swipe
   let mathTouchStartX = null;
-  mathPracticeCard.addEventListener('touchstart', (e)=>{
+  mathPracticeCard.addEventListener('touchstart', function (e) {
     mathTouchStartX = e.changedTouches[0].screenX;
-  }, {passive:true});
-  mathPracticeCard.addEventListener('touchend', (e)=>{
+  }, { passive: true });
+  mathPracticeCard.addEventListener('touchend', function (e) {
     if (mathTouchStartX === null) return;
     const dx = e.changedTouches[0].screenX - mathTouchStartX;
     if (Math.abs(dx) > 50) setupMathPractice();
     mathTouchStartX = null;
-  }, {passive:true});
+  }, { passive: true });
   mathPracticeTypeSel.onchange = setupMathPractice;
 
   // Math challenge
   const MATH_CHALLENGE_KEY = 'math_challenge_scores_v1';
   let mathChallengeScores = { addition: [], subtraction: [], multiplication: [], division: [], mixed: [] };
   try {
-    const raw = localStorage.getItem(MATH_CHALLENGE_KEY);
-    if (raw) mathChallengeScores = JSON.parse(raw);
-  } catch { mathChallengeScores = { addition: [], subtraction: [], multiplication: [], division: [], mixed: [] }; }
+    const rawMath = localStorage.getItem(MATH_CHALLENGE_KEY);
+    if (rawMath) mathChallengeScores = JSON.parse(rawMath);
+  } catch (e) {
+    mathChallengeScores = { addition: [], subtraction: [], multiplication: [], division: [], mixed: [] };
+  }
   function saveMathChallengeScores() {
     localStorage.setItem(MATH_CHALLENGE_KEY, JSON.stringify(mathChallengeScores));
   }
@@ -1775,7 +1811,7 @@
   function startMathChallenge() {
     const type = mathChallengeTypeSel.value;
     mathChallengeState = {
-      type,
+      type: type,
       score: 0,
       remaining: 60,
       current: null,
@@ -1787,7 +1823,7 @@
     mathChallengeCard.classList.remove('sparkle');
     if (mathChallengeTimerId) clearInterval(mathChallengeTimerId);
     mathChallengeTimerEl.textContent = 'Time: 60';
-    mathChallengeTimerId = setInterval(()=>{
+    mathChallengeTimerId = setInterval(function () {
       if (!mathChallengeState) return;
       mathChallengeState.remaining -= 1;
       if (mathChallengeState.remaining <= 0) {
@@ -1804,31 +1840,31 @@
     const type = mathChallengeState.type;
     mathChallengeState.current = generateMathProblem(type);
     const p = mathChallengeState.current;
-    mathChallengeProblemEl.textContent = `${p.a} ${p.op} ${p.b} = ?`;
+    mathChallengeProblemEl.textContent = p.a + ' ' + p.op + ' ' + p.b + ' = ?';
     mathChallengeAnswerEl.textContent = 'Choose an answer.';
     mathChallengeCard.classList.remove('sparkle');
     const choices = new Set();
     choices.add(p.answer);
     while (choices.size < 4) {
-      const delta = Math.floor(Math.random()*10)-5;
+      const delta = Math.floor(Math.random() * 10) - 5;
       const c = p.answer + delta;
       if (c > 0) choices.add(c);
     }
     const arr = Array.from(choices);
     shuffleOrder(arr);
-    mathChallengeChoiceBtns.forEach((btn,i)=>{
-      const val = arr[i];
+    mathChallengeChoiceBtns.forEach(function (btn, idx) {
+      const val = arr[idx];
       btn.textContent = val;
-      btn.classList.remove('correct','incorrect');
+      btn.classList.remove('correct', 'incorrect');
       btn.disabled = false;
       btn.dataset.correct = (val === p.answer) ? '1' : '0';
     });
   }
-  mathChallengeChoiceBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
+  mathChallengeChoiceBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
       if (!mathChallengeState || !mathChallengeState.current) return;
       const correct = btn.dataset.correct === '1';
-      mathChallengeChoiceBtns.forEach(b => {
+      mathChallengeChoiceBtns.forEach(function (b) {
         if (b.dataset.correct === '1') b.classList.add('correct');
         else b.classList.add('incorrect');
         b.disabled = true;
@@ -1846,11 +1882,11 @@
         simpleBeep(false);
       }
       mathChallengeState.answered.push({
-        problem: `${p.a} ${p.op} ${p.b}`,
+        problem: p.a + ' ' + p.op + ' ' + p.b,
         correctAnswer: p.answer,
-        correct
+        correct: correct
       });
-      setTimeout(()=>{
+      setTimeout(function () {
         if (!mathChallengeState) return;
         mathChallengeCard.classList.remove('sparkle');
         setupMathChallengeQuestion();
@@ -1858,56 +1894,55 @@
     });
   });
   mathChallengeStartBtn.onclick = startMathChallenge;
-function endMathChallenge() {
-  if (mathChallengeTimerId) {
-    clearInterval(mathChallengeTimerId);
-    mathChallengeTimerId = null;
+
+  function endMathChallenge() {
+    if (mathChallengeTimerId) {
+      clearInterval(mathChallengeTimerId);
+      mathChallengeTimerId = null;
+    }
+    if (!mathChallengeState) return;
+
+    const type = mathChallengeState.type;
+    const score = mathChallengeState.score;
+    const answered = mathChallengeState.answered;
+
+    mathChallengeResults.style.display = 'block';
+    mathChallengeResultsList.innerHTML = '';
+
+    answered.forEach(function (entry) {
+      const row = document.createElement('div');
+      row.className = 'leaderboard-row';
+
+      const mark = entry.correct ? '✅' : '❌';
+
+      row.innerHTML =
+        '<span>' + entry.problem + '</span>' +
+        '<span>' + entry.correctAnswer + ' ' + mark + '</span>';
+
+      mathChallengeResultsList.appendChild(row);
+    });
+
+    const list = mathChallengeScores[type] || [];
+    const newEntry = { score: score, type: type, date: Date.now(), name: '' };
+    const combined = list.concat([newEntry])
+      .sort(function (a, b) { return b.score - a.score; })
+      .slice(0, 10);
+
+    const isHighScore = combined.indexOf(newEntry) !== -1 && score > 0;
+    if (isHighScore) {
+      const name = prompt('New high score! Enter a name:') || 'Player';
+      newEntry.name = name;
+    }
+    mathChallengeScores[type] = combined;
+    saveMathChallengeScores();
+    renderMathLeaderboards();
+    renderMathHomeTop();
+    mathChallengeState = null;
   }
-  if (!mathChallengeState) return;
-
-  const { type, score, answered } = mathChallengeState;
-
-  // Show the results section
-  mathChallengeResults.style.display = 'block';
-  mathChallengeResultsList.innerHTML = '';
-
-  // List each problem and whether it was correct
-  answered.forEach(entry => {
-    const row = document.createElement('div');
-    row.className = 'leaderboard-row';
-
-    const mark = entry.correct ? '✅' : '❌';
-
-    row.innerHTML =
-      '<span>' + entry.problem + '</span>' +
-      '<span>' + entry.correctAnswer + ' ' + mark + '</span>';
-
-    mathChallengeResultsList.appendChild(row);
-  });
-
-  // Leaderboard logic
-  const list = mathChallengeScores[type] || [];
-  const newEntry = { score, type, date: Date.now(), name: '' };
-  const combined = list.concat([newEntry])
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 10);
-
-  const isHighScore = combined.includes(newEntry) && score > 0;
-  if (isHighScore) {
-    const name = prompt('New high score! Enter a name:') || 'Player';
-    newEntry.name = name;
-  }
-
-  mathChallengeScores[type] = combined;
-  saveMathChallengeScores();
-  renderMathLeaderboards();
-  renderMathHomeTop();
-  mathChallengeState = null;
-}
 
   function renderMathLeaderboards() {
     mathLeaderboardsPageEl.innerHTML = '';
-    const types = ['addition','subtraction','multiplication','division','mixed'];
+    const types = ['addition', 'subtraction', 'multiplication', 'division', 'mixed'];
     const labels = {
       addition: 'Addition',
       subtraction: 'Subtraction',
@@ -1915,29 +1950,33 @@ function endMathChallenge() {
       division: 'Division',
       mixed: 'Mixed'
     };
-    types.forEach(type=>{
-      const list = (mathChallengeScores[type] || []).slice().sort((a,b)=>b.score-a.score).slice(0,10);
-      const card = document.createElement('div');
-      card.className = 'settings-group';
-      card.innerHTML = `<h3>${labels[type]}</h3>`;
+    types.forEach(function (type) {
+      const list = (mathChallengeScores[type] || []).slice()
+        .sort(function (a, b) { return b.score - a.score; })
+        .slice(0, 10);
+      const cardEl = document.createElement('div');
+      cardEl.className = 'settings-group';
+      cardEl.innerHTML = '<h3>' + labels[type] + '</h3>';
       if (!list.length) {
         const p = document.createElement('div');
         p.className = 'hint';
         p.textContent = 'No scores yet.';
-        card.appendChild(p);
+        cardEl.appendChild(p);
       } else {
-        list.forEach((entry, idx)=>{
+        list.forEach(function (entry, idx) {
           const row = document.createElement('div');
           row.className = 'leaderboard-row';
-          row.innerHTML = `<span>${idx+1}. ${entry.name || 'Player'}</span><span class="score">${entry.score}</span>`;
-          card.appendChild(row);
+          row.innerHTML = '<span>' + (idx + 1) + '. ' + (entry.name || 'Player') +
+            '</span><span class="score">' + entry.score + '</span>';
+          cardEl.appendChild(row);
         });
       }
-      mathLeaderboardsPageEl.appendChild(card);
+      mathLeaderboardsPageEl.appendChild(cardEl);
     });
   }
+
   function renderMathHomeTop() {
-    const types = ['addition','subtraction','multiplication','division','mixed'];
+    const types = ['addition', 'subtraction', 'multiplication', 'division', 'mixed'];
     const labels = {
       addition: 'Addition',
       subtraction: 'Subtraction',
@@ -1946,11 +1985,13 @@ function endMathChallenge() {
       mixed: 'Mixed'
     };
     let html = '';
-    types.forEach(type=>{
-      const list = (mathChallengeScores[type] || []).slice().sort((a,b)=>b.score-a.score);
+    types.forEach(function (type) {
+      const list = (mathChallengeScores[type] || []).slice()
+        .sort(function (a, b) { return b.score - a.score; });
       if (list.length) {
         const best = list[0];
-        html += `<div class="leaderboard-row"><span>${labels[type]}</span><span class="score">${best.score} (${best.name || 'Player'})</span></div>`;
+        html += '<div class="leaderboard-row"><span>' + labels[type] +
+          '</span><span class="score">' + best.score + ' (' + (best.name || 'Player') + ')</span></div>';
       }
     });
     if (!html) {
@@ -1963,14 +2004,16 @@ function endMathChallenge() {
   // Math subnav
   const mathSubnavButtons = document.querySelectorAll('.subnav button[data-mathmode]');
   function setMathMode(mode) {
-    mathSubnavButtons.forEach(btn => {
+    mathSubnavButtons.forEach(function (btn) {
       btn.classList.toggle('active', btn.dataset.mathmode === mode);
     });
-    document.querySelectorAll('.math-mode').forEach(sec => sec.style.display = 'none');
+    document.querySelectorAll('.math-mode').forEach(function (sec) {
+      sec.style.display = 'none';
+    });
     document.getElementById('math-' + mode).style.display = 'block';
   }
-  mathSubnavButtons.forEach(btn => {
-    btn.addEventListener('click', () => setMathMode(btn.dataset.mathmode));
+  mathSubnavButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () { setMathMode(btn.dataset.mathmode); });
   });
 
   // Init
@@ -1986,6 +2029,8 @@ function endMathChallenge() {
 
   // expose for home tile
   window.setSightMode = setSightMode;
+  window.switchView = switchView;
 </script>
+
 </body>
 </html>
