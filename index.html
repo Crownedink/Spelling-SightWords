@@ -1,284 +1,1935 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0f172a">
-<title>Sight Words Flashcards</title>
-<style>
-  :root { --bg:#0f172a; --card:#111827; --text:#e5e7eb; --muted:#94a3b8; }
-  * { box-sizing:border-box; } html,body { margin:0; padding:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,Noto Sans,Ubuntu,Cantarell,Helvetica,sans-serif; }
-  .wrap { max-width:900px; margin:0 auto; padding:16px 16px 140px; }
-  h1 { font-size:1.15rem; margin:12px 0 8px; font-weight:800; letter-spacing:.01em; }
-  .controls,.row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
-  button,select,input { background:#111827; color:#e5e7eb; border:1px solid #1f2937; padding:10px 14px; border-radius:10px; font-size:1rem; }
-  .card { user-select:none; width:100%; height:55vh; min-height:320px; background:linear-gradient(180deg,#0b1220,#0b1324); border:1px solid #1f2937; border-radius:16px; display:grid; place-items:center; position:relative; box-shadow:0 10px 30px rgba(0,0,0,.35); padding:16px; text-align:center; overflow:hidden; }
-  .word { font-size:clamp(2.5rem,9vw,5rem); font-weight:800; }
-  .sentence { position:absolute; bottom:16px; left:0; right:0; color:var(--muted); font-size:clamp(1rem,2.5vw,1.15rem); padding:0 16px; }
-  .pill { font-size:.85rem; padding:6px 10px; border-radius:999px; background:#0b1a2f; border:1px solid #1f2937; color:#9ca3af; }
-  .hint { margin-top:6px; color:#94a3b8; }
-</style>
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta charset="utf-8">
+  <title>Spelling SightWords Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-alt: #020617;
+      --card: #111827;
+      --card-soft: #020617;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.15);
+      --danger: #f97373;
+      --success: #4ade80;
+      --border: #1f2937;
+    }
+    body.theme-light {
+      --bg: #f3f4f6;
+      --bg-alt: #e5e7eb;
+      --card: #ffffff;
+      --card-soft: #e5e7eb;
+      --text: #111827;
+      --muted: #6b7280;
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, 0.12);
+      --danger: #ef4444;
+      --success: #16a34a;
+      --border: #d1d5db;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    .app {
+      max-width: 960px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      background: var(--bg-alt);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .app-title {
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      font-size: 1rem;
+    }
+
+    nav.top-nav {
+      display: flex;
+      gap: 0.25rem;
+      flex-wrap: wrap;
+    }
+
+    button, select, input {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    button.nav-btn.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    main {
+      flex: 1;
+      padding: 1rem;
+      padding-bottom: 5rem;
+    }
+
+    section.view {
+      display: none;
+    }
+
+    section.view.active {
+      display: block;
+    }
+
+    h1, h2, h3 {
+      margin-top: 0.5rem;
+    }
+
+    .tile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .tile {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, border-color 0.1s ease;
+    }
+
+    .tile:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      border-color: var(--accent);
+    }
+
+    .tile-title {
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .tile-subtitle {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      background: var(--card-soft);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .subnav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      margin: 0.5rem 0 0.75rem;
+    }
+
+    .subnav button {
+      border-radius: 999px;
+    }
+
+    .subnav button.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .card {
+      user-select: none;
+      width: 100%;
+      height: 55vh;
+      min-height: 280px;
+      background: linear-gradient(180deg, #020617, var(--card));
+      border: 1px solid var(--border);
+      border-radius: 1.25rem;
+      display: grid;
+      place-items: center;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      padding: 1rem;
+      text-align: center;
+      overflow: hidden;
+      margin-bottom: 0.75rem;
+    }
+
+    .card.sparkle {
+      box-shadow: 0 0 0 2px var(--success), 0 0 20px var(--success);
+      animation: sparkle 0.6s ease-out;
+    }
+
+    @keyframes sparkle {
+      from { box-shadow: 0 0 0 0 var(--success); }
+      to   { box-shadow: 0 0 0 12px rgba(74, 222, 128, 0); }
+    }
+
+    .word {
+      font-size: clamp(2.4rem, 7vw, 4.2rem);
+      font-weight: 800;
+      padding: 0 0.5rem;
+    }
+
+    .sentence {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      right: 1rem;
+      color: var(--muted);
+      font-size: clamp(0.95rem, 2.2vw, 1.1rem);
+    }
+
+    .status {
+      margin-top: 0.25rem;
+    }
+
+    input[type="text"], input[type="number"] {
+      border-radius: 999px;
+      padding: 0.4rem 0.7rem;
+      min-width: 0;
+    }
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-top: 0.4rem;
+    }
+
+    .btn-ghost {
+      background: transparent;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0b1120;
+      font-weight: 600;
+    }
+
+    .btn-danger {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .btn-small {
+      font-size: 0.8rem;
+      padding: 0.25rem 0.6rem;
+    }
+
+    .badge-success {
+      background: var(--success);
+      color: #052e16;
+    }
+
+    .badge-danger {
+      background: var(--danger);
+      color: #450a0a;
+    }
+
+    .leaderboard {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .leaderboard-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.15rem 0;
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .leaderboard-row span.score {
+      font-weight: 600;
+    }
+
+    .math-choices {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .math-choice-btn {
+      border-radius: 0.75rem;
+      padding-block: 0.5rem;
+      font-size: 1.1rem;
+    }
+
+    .math-choice-btn.correct {
+      background: var(--success);
+      color: #052e16;
+      border-color: var(--success);
+    }
+
+    .math-choice-btn.incorrect {
+      background: var(--danger);
+      color: #450a0a;
+      border-color: var(--danger);
+    }
+
+    .math-problem {
+      font-size: clamp(2.2rem, 6vw, 3rem);
+      font-weight: 800;
+    }
+
+    .math-answer {
+      font-size: 1rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+
+    .flex-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .settings-group {
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      background: var(--card);
+      border-radius: 0.75rem;
+      border: 1px solid var(--border);
+    }
+
+    .settings-group h3 {
+      margin-top: 0;
+      font-size: 1rem;
+    }
+
+    .hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+
+    @media (max-width: 640px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.4rem;
+      }
+      .card {
+        height: 50vh;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>Sight Words Flashcards</h1>
+<div class="app">
+  <header>
+    <div class="app-title">Spelling SightWords</div>
+    <nav class="top-nav">
+      <button class="nav-btn active" data-view="home">Home</button>
+      <button class="nav-btn" data-view="sight">Sight Words</button>
+      <button class="nav-btn" data-view="math">Quick Math</button>
+      <button class="nav-btn" data-view="settings">Settings</button>
+    </nav>
+  </header>
 
-  <div class="row">
-    <label>Folder:</label>
-    <select id="folderSel"></select>
-    <button id="newFolderBtn">New Folder</button>
-    <button id="renameFolderBtn">Rename</button>
-    <button id="deleteFolderBtn">Delete</button>
-    <span class="pill" id="countPill"></span>
-  </div>
+  <main>
+    <!-- HOME VIEW -->
+    <section id="view-home" class="view active">
+      <h1>Learning Hub</h1>
+      <p class="hint">Choose a mode to start practicing. Sight words and quick math all in one place.</p>
 
-  <div class="controls">
-    <button id="prevBtn">⟵ Prev</button>
-    <button id="flipBtn">Flip</button>
-    <button id="nextBtn">Next ⟶</button>
-    <button id="shuffleBtn">Shuffle</button>
-    <button id="speakBtn">🔊 Speak</button>
-    <button id="spellBtn">🔤 Spell</button>
-    <button id="installBtn" hidden class="pill">Install App</button>
-    <button onclick="location.href='how-to-install.html'">How to install</button>
-    <button id="exportBtn">Export</button>
-    <input type="file" id="importFile" accept=".json,application/json" style="display:none;">
-    <button id="importBtn">Import</button>
-    <select id="mode">
-      <option value="word">Show: Word</option>
-      <option value="sentence">Show: Sentence</option>
-      <option value="both" selected>Show: Both</option>
-    </select>
-  </div>
+      <div class="tile-grid">
+        <div class="tile" onclick="switchView('sight')">
+          <div>
+            <div class="tile-title">Sight Words</div>
+            <div class="tile-subtitle">Flashcards, quiz mode, spelling practice, and a 60-second challenge.</div>
+          </div>
+          <div class="row">
+            <span class="pill">Folders + TTS</span>
+            <span class="pill">Challenge</span>
+          </div>
+        </div>
 
-  <div id="card" class="card" tabindex="0" role="button" aria-label="Flashcard (tap to flip)">
-    <div id="word" class="word"></div>
-    <div id="sentence" class="sentence"></div>
-  </div>
+        <div class="tile" onclick="switchView('math')">
+          <div>
+            <div class="tile-title">Quick Math</div>
+            <div class="tile-subtitle">Addition, subtraction, multiplication, division, and mixed drills.</div>
+          </div>
+          <div class="row">
+            <span class="pill">Four choices</span>
+            <span class="pill">Swipe navigation</span>
+          </div>
+        </div>
 
-  <div class="controls">
-    <input id="newWord" placeholder="new word" minlength="1"/>
-    <input id="newSentence" placeholder="example sentence"/>
-    <button id="addBtn">Add</button>
-  </div>
+        <div class="tile" onclick="switchView('sight'); setSightMode('challenge');">
+          <div>
+            <div class="tile-title">Sight Words Challenge</div>
+            <div class="tile-subtitle">60 seconds to answer as many as you can. Quiz or spelling mode.</div>
+          </div>
+          <div class="row">
+            <span class="pill">Leaderboard</span>
+            <span class="pill">Top 10 scores</span>
+          </div>
+        </div>
+      </div>
 
-  <div class="hint">Tip: Tap the card or press “Flip”. Swipe left/right or use Prev/Next. Default folders are read-only; your additions are saved under the same folder name locally.</div>
-  <div class="pill" id="status"></div>
+      <h2>🏆 Sight Words Challenge Leaderboard</h2>
+      <p class="hint">Top 10 combined high scores across Quiz and Spelling challenges.</p>
+      <div id="sw-home-leaderboard" class="leaderboard"></div>
+    </section>
+
+    <!-- SIGHT WORDS VIEW -->
+    <section id="view-sight" class="view">
+      <h1>Sight Words</h1>
+      <div class="row">
+        <label>Folder:</label>
+        <select id="folderSel"></select>
+        <span class="pill" id="countPill"></span>
+        <button id="sightMenuToggle" class="btn-small btn-ghost">Sight Words Menu ▾</button>
+      </div>
+
+      <div id="sightMenuPanel" class="stack" style="display:none;">
+        <div class="row">
+          <button id="newFolderBtn" class="btn-small">New Folder</button>
+          <button id="renameFolderBtn" class="btn-small">Rename Folder</button>
+          <button id="deleteFolderBtn" class="btn-small btn-danger">Delete Folder</button>
+        </div>
+        <div class="row">
+          <button id="exportBtn" class="btn-small">Export Words</button>
+          <input type="file" id="importFile" accept=".json,application/json" style="display:none;">
+          <button id="importBtn" class="btn-small">Import Words</button>
+        </div>
+        <div class="hint">Default folders cannot be renamed or deleted, but you can add new words to them. Imported sets are added as custom folders.</div>
+      </div>
+
+      <div class="subnav">
+        <button class="subnav-btn active" data-sightmode="flashcards">Flashcards</button>
+        <button class="subnav-btn" data-sightmode="quiz">Quiz Mode</button>
+        <button class="subnav-btn" data-sightmode="spelling">Spelling Mode</button>
+        <button class="subnav-btn" data-sightmode="challenge">Challenge 60</button>
+      </div>
+
+      <!-- FLASHCARDS MODE -->
+      <div id="sight-flashcards" class="sight-mode">
+        <div class="row">
+          <button id="prevBtn">⟵ Prev</button>
+          <button id="flipBtn">Flip</button>
+          <button id="nextBtn">Next ⟶</button>
+          <button id="shuffleBtn">Shuffle</button>
+          <button id="speakBtn">🔊 Speak</button>
+          <button id="spellBtn">🔤 Spell</button>
+          <select id="mode">
+            <option value="word">Show: Word</option>
+            <option value="sentence">Show: Sentence</option>
+            <option value="both" selected>Show: Both</option>
+          </select>
+        </div>
+
+        <div id="card" class="card" tabindex="0" aria-label="Flashcard">
+          <div id="word" class="word"></div>
+          <div id="sentence" class="sentence"></div>
+        </div>
+
+        <div class="row">
+          <input id="newWord" placeholder="new word" type="text">
+          <input id="newSentence" placeholder="example sentence" type="text">
+          <button id="addBtn">Add</button>
+        </div>
+        <div class="status pill" id="status"></div>
+      </div>
+
+      <!-- QUIZ MODE -->
+      <div id="sight-quiz" class="sight-mode" style="display:none;">
+        <div class="row flex-between">
+          <div>
+            <strong>Quiz Mode</strong>
+            <div class="hint">Listen and tap the word you hear.</div>
+          </div>
+          <button id="quizPlayBtn" class="btn-small">Play Prompt 🔊</button>
+        </div>
+        <div class="card" id="quizCard">
+          <div class="word" id="quizPrompt">Tap "Play Prompt" to start</div>
+          <div class="sentence" id="quizSentenceHint"></div>
+        </div>
+        <div class="math-choices">
+          <button class="math-choice-btn" data-qindex="0"></button>
+          <button class="math-choice-btn" data-qindex="1"></button>
+          <button class="math-choice-btn" data-qindex="2"></button>
+          <button class="math-choice-btn" data-qindex="3"></button>
+        </div>
+        <div class="row">
+          <span class="pill" id="quizScorePill">Score: 0</span>
+          <button id="quizNextBtn" class="btn-small">Next Question</button>
+        </div>
+      </div>
+
+      <!-- SPELLING MODE -->
+      <div id="sight-spelling" class="sight-mode" style="display:none;">
+        <div class="row flex-between">
+          <div>
+            <strong>Spelling Mode</strong>
+            <div class="hint">Listen and type the sight word.</div>
+          </div>
+          <div class="row">
+            <button id="spellPlayWordBtn" class="btn-small">Play Word 🔊</button>
+            <button id="spellPlayLettersBtn" class="btn-small">Spell It 🔤</button>
+          </div>
+        </div>
+        <div class="card" id="spellCard">
+          <div class="sentence" id="spellSentenceHint"></div>
+        </div>
+        <div class="row">
+          <input id="spellInput" type="text" placeholder="Type the word">
+          <button id="spellCheckBtn" class="btn-small">Check</button>
+          <button id="spellNextBtn" class="btn-small">Next</button>
+        </div>
+        <div class="status pill" id="spellStatus"></div>
+      </div>
+
+      <!-- SIGHT WORDS CHALLENGE MODE -->
+      <div id="sight-challenge" class="sight-mode" style="display:none;">
+        <div class="row flex-between">
+          <div>
+            <strong>Challenge 60 (Sight Words)</strong>
+            <div class="hint">60 seconds to answer as many as you can. Each correct = 10 points.</div>
+          </div>
+          <select id="swChallengeType">
+            <option value="quiz">Quiz Style</option>
+            <option value="spelling">Spelling Style</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <button id="swChallengeStartBtn" class="btn-primary">Start Challenge</button>
+          <span class="pill" id="swChallengeTimer">Time: 60</span>
+          <span class="pill" id="swChallengeScorePill">Score: 0</span>
+        </div>
+
+        <div id="swChallengeQuestionArea">
+          <!-- Reuse quiz / spelling style layouts -->
+          <div class="card" id="swChallengeCard">
+            <div class="word" id="swChallengePrompt">Press "Start Challenge" to begin</div>
+            <div class="sentence" id="swChallengeSentence"></div>
+          </div>
+          <div id="swChallengeQuizChoices" class="math-choices">
+            <button class="math-choice-btn" data-swqindex="0"></button>
+            <button class="math-choice-btn" data-swqindex="1"></button>
+            <button class="math-choice-btn" data-swqindex="2"></button>
+            <button class="math-choice-btn" data-swqindex="3"></button>
+          </div>
+          <div id="swChallengeSpellingControls" style="display:none;">
+            <div class="row">
+              <input id="swChallengeSpellInput" type="text" placeholder="Type the word">
+              <button id="swChallengePlayWordBtn" class="btn-small">Play Word 🔊</button>
+              <button id="swChallengePlayLettersBtn" class="btn-small">Spell It 🔤</button>
+              <button id="swChallengeSpellCheckBtn" class="btn-small">Submit</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="swChallengeResults" style="display:none; margin-top:0.75rem;">
+          <h3>Challenge Results</h3>
+          <div class="stack" id="swChallengeResultsList"></div>
+        </div>
+
+        <h3 style="margin-top:1rem;">Leaderboard (Sight Words Challenge)</h3>
+        <div id="swChallengeLeaderboard" class="leaderboard"></div>
+      </div>
+    </section>
+
+    <!-- QUICK MATH VIEW -->
+    <section id="view-math" class="view">
+      <h1>Quick Math</h1>
+      <p class="hint">Practice basic math or try a 60-second sprint.</p>
+
+      <div class="subnav">
+        <button class="subnav-btn active" data-mathmode="practice">Practice</button>
+        <button class="subnav-btn" data-mathmode="challenge">Math Sprint 60</button>
+      </div>
+
+      <!-- PRACTICE MODE -->
+      <div id="math-practice" class="math-mode">
+        <div class="row">
+          <label>Practice:</label>
+          <select id="mathPracticeType">
+            <option value="addition">Addition</option>
+            <option value="subtraction">Subtraction</option>
+            <option value="multiplication">Multiplication</option>
+            <option value="division">Division</option>
+            <option value="mixed">Mixed</option>
+          </select>
+          <span class="pill" id="mathPracticeScorePill">Score: 0</span>
+        </div>
+
+        <div class="card" id="mathPracticeCard">
+          <div class="math-problem" id="mathPracticeProblem">2 + 3 = ?</div>
+          <div class="math-answer" id="mathPracticeAnswer">Choose an answer below.</div>
+        </div>
+
+        <div class="math-choices" id="mathPracticeChoices">
+          <button class="math-choice-btn"></button>
+          <button class="math-choice-btn"></button>
+          <button class="math-choice-btn"></button>
+          <button class="math-choice-btn"></button>
+        </div>
+
+        <div class="hint">Swipe left / right on the card or use answer buttons to move to the next problem.</div>
+      </div>
+
+      <!-- MATH CHALLENGE MODE -->
+      <div id="math-challenge" class="math-mode" style="display:none;">
+        <div class="row">
+          <label>Math Sprint 60:</label>
+          <select id="mathChallengeType">
+            <option value="addition">Addition</option>
+            <option value="subtraction">Subtraction</option>
+            <option value="multiplication">Multiplication</option>
+            <option value="division">Division</option>
+            <option value="mixed">Mixed</option>
+          </select>
+        </div>
+        <div class="row">
+          <button id="mathChallengeStartBtn" class="btn-primary">Start Sprint</button>
+          <span class="pill" id="mathChallengeTimer">Time: 60</span>
+          <span class="pill" id="mathChallengeScorePill">Score: 0</span>
+        </div>
+
+        <div class="card" id="mathChallengeCard">
+          <div class="math-problem" id="mathChallengeProblem">Press "Start Sprint"</div>
+          <div class="math-answer" id="mathChallengeAnswer"></div>
+        </div>
+
+        <div class="math-choices" id="mathChallengeChoices">
+          <button class="math-choice-btn"></button>
+          <button class="math-choice-btn"></button>
+          <button class="math-choice-btn"></button>
+          <button class="math-choice-btn"></button>
+        </div>
+
+        <div id="mathChallengeResults" style="display:none; margin-top:0.75rem;">
+          <h3>Results</h3>
+          <div class="stack" id="mathChallengeResultsList"></div>
+        </div>
+
+        <h3 style="margin-top:1rem;">Leaderboards</h3>
+        <p class="hint">Top 10 scores per math type.</p>
+        <div id="mathLeaderboards" class="stack"></div>
+      </div>
+    </section>
+
+    <!-- SETTINGS VIEW -->
+    <section id="view-settings" class="view">
+      <h1>Settings</h1>
+      <div class="settings-group">
+        <h3>Theme</h3>
+        <div class="row">
+          <button id="themeDarkBtn" class="btn-small">Dark Mode</button>
+          <button id="themeLightBtn" class="btn-small">Light Mode</button>
+        </div>
+        <div class="hint">Theme preference is saved on this device.</div>
+      </div>
+
+      <div class="settings-group">
+        <h3>App Info</h3>
+        <p class="hint">This app lets you practice sight words and quick math. Install it on your device for offline use.</p>
+        <button class="btn-small" onclick="location.href='how-to-install.html'">How to install</button>
+      </div>
+    </section>
+  </main>
 </div>
 
 <script>
-if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js')); }
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  const installBtn = document.getElementById('installBtn');
-  installBtn.hidden = false;
-  installBtn.onclick = async () => {
-    installBtn.hidden = true;
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    deferredPrompt = null;
+  // --- PWA service worker registration ---
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
+
+  // --- THEME HANDLING ---
+  const THEME_KEY = 'sw_theme';
+  function applyTheme(theme) {
+    document.body.classList.remove('theme-dark', 'theme-light');
+    if (theme === 'light') document.body.classList.add('theme-light');
+    else document.body.classList.add('theme-dark');
+    localStorage.setItem(THEME_KEY, theme);
+  }
+  const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+  applyTheme(savedTheme);
+
+  document.getElementById('themeDarkBtn').onclick = () => applyTheme('dark');
+  document.getElementById('themeLightBtn').onclick = () => applyTheme('light');
+
+  // --- NAVIGATION BETWEEN VIEWS ---
+  const navButtons = document.querySelectorAll('.nav-btn');
+  function switchView(viewId) {
+    document.querySelectorAll('section.view').forEach(sec => sec.classList.remove('active'));
+    document.getElementById('view-' + viewId).classList.add('active');
+    navButtons.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.view === viewId);
+    });
+  }
+  navButtons.forEach(btn => {
+    btn.addEventListener('click', () => switchView(btn.dataset.view));
+  });
+
+  // --- SIGHT WORDS DATA ---
+  const DEFAULT_SETS = {
+    "Top 20": [
+      ["the", "The cat is on the bed."],
+      ["of", "A glass of water."],
+      ["and", "You and I are friends."],
+      ["a", "I see a dog."],
+      ["to", "I go to school."],
+      ["in", "The book is in the bag."],
+      ["is", "She is happy."],
+      ["you", "You are my friend."],
+      ["that", "I like that toy."],
+      ["it", "It is raining."],
+      ["he", "He is my brother."],
+      ["was", "She was at the park."],
+      ["for", "This gift is for you."],
+      ["on", "The ball is on the table."],
+      ["are", "We are ready."],
+      ["as", "Run as fast as you can."],
+      ["with", "I play with my dog."],
+      ["his", "This is his book."],
+      ["they", "They are at school."],
+      ["I", "I can read."]
+    ],
+    "Level 2 (Early Primer, 30)": (function() {
+      const words = ["am","at","ate","be","black","brown","but","came","did","do","eat","four","get","good","have","into","like","must","new","no","now","on","our","out","please","pretty","ran","ride","saw","so"];
+      const sentences = {
+        "am":"I am ready.",
+        "at":"We are at home.",
+        "ate":"I ate lunch.",
+        "be":"Please be kind.",
+        "black":"The cat is black.",
+        "brown":"The bear is brown.",
+        "but":"I want to play, but I must read.",
+        "came":"She came to class.",
+        "did":"He did his work.",
+        "do":"Do your best.",
+        "eat":"We eat together.",
+        "four":"I have four books.",
+        "get":"Go get your coat.",
+        "good":"That is a good idea.",
+        "have":"We have time.",
+        "into":"Walk into the room.",
+        "like":"I like this game.",
+        "must":"You must try.",
+        "new":"This book is new.",
+        "no":"No, thank you.",
+        "now":"Read it now.",
+        "on":"The hat is on me.",
+        "our":"This is our team.",
+        "out":"Go out to play.",
+        "please":"Please help me.",
+        "pretty":"The flower is pretty.",
+        "ran":"He ran fast.",
+        "ride":"I ride my bike.",
+        "saw":"We saw a bird.",
+        "so":"It was cold, so I wore a coat."
+      };
+      return words.map(w => [w, sentences[w] || ("I can read the word '" + w + "'.")]);
+    })(),
+    "Level 3 (First Grade, 30)": (function() {
+      const words = ["after","again","an","any","as","ask","by","could","every","fly","from","give","going","had","has","her","him","how","just","know","let","live","many","old","once","open","over","put","round","some"];
+      const sentences = {
+        "after":"After lunch we read.",
+        "again":"Try again.",
+        "an":"I ate an apple.",
+        "any":"Do you have any?",
+        "as":"Run as fast as you can.",
+        "ask":"Ask a question.",
+        "by":"Stand by me.",
+        "could":"I could help you.",
+        "every":"Every day we learn.",
+        "fly":"Birds can fly.",
+        "from":"This is from me.",
+        "give":"Please give me a pen.",
+        "going":"We are going home.",
+        "had":"She had a snack.",
+        "has":"He has a book.",
+        "her":"This is her hat.",
+        "him":"I will help him.",
+        "how":"How are you?",
+        "just":"Just do it.",
+        "know":"I know the answer.",
+        "let":"Let me try.",
+        "live":"We live here.",
+        "many":"We saw many stars.",
+        "old":"That car is old.",
+        "once":"Once we went camping.",
+        "open":"Open the door.",
+        "over":"Jump over the line.",
+        "put":"Put it away.",
+        "round":"Draw a round circle.",
+        "some":"I have some water."
+      };
+      return words.map(w => [w, sentences[w] || ("I can read the word '" + w + "'.")]);
+    })()
   };
-});
 
-const DEFAULT_SETS = {"Top 20": [["the", "The cat is on the bed."], ["of", "A glass of water."], ["and", "You and I are friends."], ["a", "I see a dog."], ["to", "I go to school."], ["in", "The book is in the bag."], ["is", "She is happy."], ["you", "You are my friend."], ["that", "I like that toy."], ["it", "It is raining."], ["he", "He is my brother."], ["was", "She was at the park."], ["for", "This gift is for you."], ["on", "The ball is on the table."], ["are", "We are ready."], ["as", "Run as fast as you can."], ["with", "I play with my dog."], ["his", "This is his book."], ["they", "They are at school."], ["I", "I can read."]], "Level 2 (Early Primer, 30)": [["am", "I am ready."], ["at", "We are at home."], ["ate", "I ate lunch."], ["be", "Please be kind."], ["black", "The cat is black."], ["brown", "The bear is brown."], ["but", "I want to play, but I must read."], ["came", "She came to class."], ["did", "He did his work."], ["do", "Do your best."], ["eat", "We eat together."], ["four", "I have four books."], ["get", "Go get your coat."], ["good", "That is a good idea."], ["have", "We have time."], ["into", "Walk into the room."], ["like", "I like this game."], ["must", "You must try."], ["new", "This book is new."], ["no", "No, thank you."], ["now", "Read it now."], ["on", "The hat is on me."], ["our", "This is our team."], ["out", "Go out to play."], ["please", "Please help me."], ["pretty", "The flower is pretty."], ["ran", "He ran fast."], ["ride", "I ride my bike."], ["saw", "We saw a bird."], ["so", "It was cold, so I wore a coat."]], "Level 3 (First Grade, 30)": [["after", "After lunch we read."], ["again", "Try again."], ["an", "I ate an apple."], ["any", "Do you have any?"], ["as", "Run as fast as you can."], ["ask", "Ask a question."], ["by", "Stand by me."], ["could", "I could help you."], ["every", "Every day we learn."], ["fly", "Birds can fly."], ["from", "This is from me."], ["give", "Please give me a pen."], ["going", "We are going home."], ["had", "She had a snack."], ["has", "He has a book."], ["her", "This is her hat."], ["him", "I will help him."], ["how", "How are you?"], ["just", "Just do it."], ["know", "I know the answer."], ["let", "Let me try."], ["live", "We live here."], ["many", "We saw many stars."], ["old", "That car is old."], ["once", "Once we went camping."], ["open", "Open the door."], ["over", "Jump over the line."], ["put", "Put it away."], ["round", "Draw a round circle."], ["some", "I have some water."]]};
-const STORAGE_KEY = 'sight_words_sets_json_v3';
-let SETS = {};
-try { const raw = localStorage.getItem(STORAGE_KEY); SETS = raw ? JSON.parse(raw) : {}; } catch { SETS = {}; }
-
-const folderSel = document.getElementById('folderSel');
-const countPill = document.getElementById('countPill');
-const statusEl = document.getElementById('status');
-const modeSel = document.getElementById('mode');
-const card = document.getElementById('card');
-const wordEl = document.getElementById('word');
-const sentenceEl = document.getElementById('sentence');
-
-function foldersList() {
-  const names = Object.keys(DEFAULT_SETS).concat(Object.keys(SETS).filter(n => !Object.keys(DEFAULT_SETS).includes(n)));
-  return [...new Set(names)];
-}
-function saveSets() { localStorage.setItem(STORAGE_KEY, JSON.stringify(SETS)); }
-function selectFolderOptions() {
-  const current = folderSel.value;
-  folderSel.innerHTML = '';
-  for (const name of foldersList()) {
-    const opt = document.createElement('option');
-    opt.value = name; opt.textContent = name;
-    folderSel.appendChild(opt);
+  const STORAGE_KEY_SETS = 'sight_words_sets_json_v3';
+  let SETS = {};
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_SETS);
+    SETS = raw ? JSON.parse(raw) : {};
+  } catch {
+    SETS = {};
   }
-  if (foldersList().includes(current)) folderSel.value = current;
-  else folderSel.value = foldersList()[0];
-}
-function getFolderData(name) {
-  const base = DEFAULT_SETS[name] || [];
-  const custom = SETS[name] || [];
-  return base.concat(custom);
-}
 
-let activeFolder = "Top 20";
-selectFolderOptions();
-if (!foldersList().includes(activeFolder)) activeFolder = foldersList()[0];
+  function saveSets() {
+    localStorage.setItem(STORAGE_KEY_SETS, JSON.stringify(SETS));
+  }
 
-let data = getFolderData(activeFolder);
-let order = [...Array(data.length).keys()];
-let i = 0;
-let flipped = false;
+  const folderSel = document.getElementById('folderSel');
+  const countPill = document.getElementById('countPill');
+  const statusEl = document.getElementById('status');
+  const modeSel = document.getElementById('mode');
+  const card = document.getElementById('card');
+  const wordEl = document.getElementById('word');
+  const sentenceEl = document.getElementById('sentence');
 
-function updateCount() { countPill.textContent = `${data.length} cards`; }
-function render() {
-  if (!data.length) {
-    wordEl.textContent = "(empty)";
-    sentenceEl.textContent = "Add words to this folder, or choose another folder.";
-    statusEl.textContent = `Card 0 / 0 • ${activeFolder}`;
+  function foldersList() {
+    const defNames = Object.keys(DEFAULT_SETS);
+    const customNames = Object.keys(SETS).filter(n => !defNames.includes(n));
+    return defNames.concat(customNames);
+  }
+
+  function selectFolderOptions() {
+    const current = folderSel.value;
+    folderSel.innerHTML = '';
+    foldersList().forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      folderSel.appendChild(opt);
+    });
+    if (foldersList().includes(current)) folderSel.value = current;
+    else folderSel.value = foldersList()[0];
+  }
+
+  function getFolderData(name) {
+    const base = DEFAULT_SETS[name] || [];
+    const custom = SETS[name] || [];
+    return base.concat(custom);
+  }
+
+  let activeFolder = "Top 20";
+  selectFolderOptions();
+  if (!foldersList().includes(activeFolder)) activeFolder = foldersList()[0];
+
+  let data = getFolderData(activeFolder);
+  let order = data.map((_, idx) => idx);
+  let i = 0;
+  let flipped = false;
+
+  function shuffleOrder(arr) {
+    for (let j = arr.length - 1; j > 0; j--) {
+      const k = Math.floor(Math.random() * (j + 1));
+      [arr[j], arr[k]] = [arr[k], arr[j]];
+    }
+  }
+
+  function updateCount() {
+    countPill.textContent = data.length + " cards";
+  }
+
+  function renderFlashcard() {
+    if (!data.length) {
+      wordEl.textContent = "(empty)";
+      sentenceEl.textContent = "Add words to this folder, or choose another folder.";
+      statusEl.textContent = `Card 0 / 0 • ${activeFolder}`;
+      updateCount();
+      return;
+    }
+    const idx = order[i];
+    const [w, s] = data[idx];
+    const mode = modeSel.value;
+    if (mode === 'word') {
+      wordEl.textContent = w;
+      sentenceEl.textContent = flipped ? s : '';
+    } else if (mode === 'sentence') {
+      wordEl.textContent = flipped ? w : '';
+      sentenceEl.textContent = s;
+    } else {
+      wordEl.textContent = w;
+      sentenceEl.textContent = s;
+    }
+    statusEl.textContent = `Card ${i + 1} / ${data.length} • ${activeFolder}`;
     updateCount();
-    return;
   }
-  const idx = order[i];
-  const [w, s] = data[idx];
-  const mode = modeSel.value;
-  if (mode === 'word') { wordEl.textContent = w; sentenceEl.textContent = flipped ? s : ''; }
-  else if (mode === 'sentence') { wordEl.textContent = flipped ? w : ''; sentenceEl.textContent = s; }
-  else { wordEl.textContent = w; sentenceEl.textContent = s; }
-  statusEl.textContent = `Card ${i+1} / ${data.length} • ${activeFolder}`;
-  updateCount();
-}
 
-function flip() { flipped = !flipped; render(); }
-function next() { if (!data.length) return; i = (i + 1) % data.length; flipped = false; render(); }
-function prev() { if (!data.length) return; i = (i - 1 + data.length) % data.length; flipped = false; render(); }
-function shuffle() {
-  for (let j = order.length - 1; j > 0; j--) { const k = Math.floor(Math.random() * (j + 1)); [order[j], order[k]] = [order[k], order[j]]; }
-  i = 0; flipped = false; render();
-}
-document.getElementById('flipBtn').onclick = flip;
-document.getElementById('nextBtn').onclick = next;
-document.getElementById('prevBtn').onclick = prev;
-document.getElementById('shuffleBtn').onclick = shuffle;
-modeSel.onchange = () => { flipped = false; render(); };
+  function flipFlashcard() {
+    flipped = !flipped;
+    renderFlashcard();
+  }
+  function nextFlashcard() {
+    if (!data.length) return;
+    i = (i + 1) % data.length;
+    flipped = false;
+    renderFlashcard();
+  }
+  function prevFlashcard() {
+    if (!data.length) return;
+    i = (i - 1 + data.length) % data.length;
+    flipped = false;
+    renderFlashcard();
+  }
+  function shuffleFlashcards() {
+    order = data.map((_, idx) => idx);
+    shuffleOrder(order);
+    i = 0;
+    flipped = false;
+    renderFlashcard();
+  }
 
-card.addEventListener('click', flip);
-card.addEventListener('keydown', (e) => {
-  if (e.key === ' ' || e.key.toLowerCase() === 'f') flip();
-  if (e.key === 'ArrowRight') next();
-  if (e.key === 'ArrowLeft') prev();
-});
-let touchStartX = null;
-card.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
-card.addEventListener('touchend', (e) => {
-  const dx = e.changedTouches[0].screenX - touchStartX;
-  if (Math.abs(dx) > 50) { if (dx < 0) next(); else prev(); } else { flip(); }
-}, {passive: true});
+  document.getElementById('prevBtn').onclick = prevFlashcard;
+  document.getElementById('nextBtn').onclick = nextFlashcard;
+  document.getElementById('flipBtn').onclick = flipFlashcard;
+  document.getElementById('shuffleBtn').onclick = shuffleFlashcards;
+  modeSel.onchange = () => { flipped = false; renderFlashcard(); };
 
-document.getElementById('addBtn').onclick = () => {
-  const w = document.getElementById('newWord').value.trim();
-  const s = document.getElementById('newSentence').value.trim();
-  if (!w || !s) return;
-  if (!SETS[activeFolder]) SETS[activeFolder] = [];
-  SETS[activeFolder].push([w, s]);
-  saveSets();
-  data = getFolderData(activeFolder);
-  order = [...Array(data.length).keys()];
-  i = data.length - 1; flipped = false;
-  document.getElementById('newWord').value = '';
-  document.getElementById('newSentence').value = '';
-  render();
-};
+  // Card keyboard + tap
+  card.addEventListener('click', flipFlashcard);
+  card.addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.key.toLowerCase() === 'f') { e.preventDefault(); flipFlashcard(); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); nextFlashcard(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prevFlashcard(); }
+  });
 
-folderSel.onchange = () => {
-  activeFolder = folderSel.value;
-  data = getFolderData(activeFolder);
-  order = [...Array(data.length).keys()];
-  i = 0; flipped = false; render();
-};
-document.getElementById('newFolderBtn').onclick = () => {
-  const name = prompt('New folder name:');
-  if (!name) return;
-  if (!SETS[name] && !DEFAULT_SETS[name]) SETS[name] = [];
-  else return alert('Folder already exists.');
-  saveSets();
-  selectFolderOptions();
-  folderSel.value = name; folderSel.onchange();
-};
-document.getElementById('renameFolderBtn').onclick = () => {
-  if (!SETS[activeFolder]) return alert('Default folders cannot be renamed.');
-  const newName = prompt('Rename folder:', activeFolder);
-  if (!newName || newName === activeFolder) return;
-  if (SETS[newName] || DEFAULT_SETS[newName]) return alert('Name already exists.');
-  SETS[newName] = SETS[activeFolder];
-  delete SETS[activeFolder];
-  saveSets();
-  selectFolderOptions();
-  folderSel.value = newName; folderSel.onchange();
-};
-document.getElementById('deleteFolderBtn').onclick = () => {
-  if (!SETS[activeFolder]) return alert('Default folders cannot be deleted.');
-  if (!confirm(`Delete folder "${activeFolder}"? This cannot be undone.`)) return;
-  delete SETS[activeFolder];
-  saveSets();
-  selectFolderOptions();
-  folderSel.value = "Top 20"; folderSel.onchange();
-};
+  // Folder change
+  folderSel.onchange = () => {
+    activeFolder = folderSel.value;
+    data = getFolderData(activeFolder);
+    order = data.map((_, idx) => idx);
+    i = 0;
+    flipped = false;
+    renderFlashcard();
+    resetQuizState();
+    resetSpellingState();
+  };
 
-function speak(text) {
-  if (!('speechSynthesis' in window)) return alert('Text-to-Speech not supported on this device.');
-  const u = new SpeechSynthesisUtterance(text);
-  const vs = speechSynthesis.getVoices();
-  const en = vs.find(v => v.lang && v.lang.toLowerCase().startsWith('en'));
-  if (en) u.voice = en;
-  speechSynthesis.cancel(); speechSynthesis.speak(u);
-}
-function spell(text) { const letters = text.split('').join(', '); speak(letters + '. ' + text); }
-document.getElementById('speakBtn').onclick = () => { if (!data.length) return; const [w,s]=data[order[i]]; const m=modeSel.value; if (m==='word') speak(w); else if (m==='sentence') speak(s); else speak(`${w}. ${s}`); };
-document.getElementById('spellBtn').onclick = () => { if (!data.length) return; const [w]=data[order[i]]; spell(w); };
+  // Add word
+  document.getElementById('addBtn').onclick = () => {
+    const w = document.getElementById('newWord').value.trim();
+    const s = document.getElementById('newSentence').value.trim();
+    if (!w || !s) return;
+    if (!SETS[activeFolder]) SETS[activeFolder] = [];
+    SETS[activeFolder].push([w, s]);
+    saveSets();
+    data = getFolderData(activeFolder);
+    order = data.map((_, idx) => idx);
+    i = data.length - 1;
+    flipped = false;
+    document.getElementById('newWord').value = '';
+    document.getElementById('newSentence').value = '';
+    renderFlashcard();
+    resetQuizState();
+    resetSpellingState();
+  };
 
-const exportBtn = document.getElementById('exportBtn');
-const importBtn = document.getElementById('importBtn');
-const importFile = document.getElementById('importFile');
-function download(filename, text) {
-  const blob = new Blob([text], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-}
-exportBtn.onclick = () => download('sight_words_sets.json', JSON.stringify({ sets: SETS }, null, 2));
-importBtn.onclick = () => importFile.click();
-importFile.addEventListener('change', (e) => {
-  const file = e.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const parsed = JSON.parse(reader.result);
-      let incoming = {};
-      if (parsed && parsed.sets && typeof parsed.sets === 'object') incoming = parsed.sets;
-      else if (Array.isArray(parsed)) incoming = { Imported: parsed };
-      else throw new Error('Invalid file format');
-      for (const [folder, items] of Object.entries(incoming)) {
-        if (!Array.isArray(items)) continue;
-        if (!SETS[folder]) SETS[folder] = [];
-        const key = (w, s) => (String(w).trim().toLowerCase() + '|' + String(s).trim().toLowerCase());
-        const existing = new Set(SETS[folder].map(([w,s]) => key(w,s)));
-        for (const item of items) {
-          if (Array.isArray(item) && item.length >= 2) {
-            const w = String(item[0]).trim(); const s = String(item[1]).trim();
-            const k = key(w,s);
-            if (!existing.has(k)) { SETS[folder].push([w,s]); existing.add(k); }
+  // Sight Words menu panel
+  const sightMenuToggle = document.getElementById('sightMenuToggle');
+  const sightMenuPanel = document.getElementById('sightMenuPanel');
+  sightMenuToggle.onclick = () => {
+    sightMenuPanel.style.display = (sightMenuPanel.style.display === 'none' || sightMenuPanel.style.display === '') ? 'block' : 'none';
+  };
+
+  // Folder management (menu)
+  document.getElementById('newFolderBtn').onclick = () => {
+    const name = prompt('New folder name:');
+    if (!name) return;
+    if (SETS[name] || DEFAULT_SETS[name]) {
+      alert('Folder already exists.');
+      return;
+    }
+    SETS[name] = [];
+    saveSets();
+    selectFolderOptions();
+    folderSel.value = name;
+    folderSel.onchange();
+  };
+
+  document.getElementById('renameFolderBtn').onclick = () => {
+    if (!SETS[activeFolder]) {
+      alert('Default folders cannot be renamed.');
+      return;
+    }
+    const newName = prompt('Rename folder:', activeFolder);
+    if (!newName || newName === activeFolder) return;
+    if (SETS[newName] || DEFAULT_SETS[newName]) {
+      alert('That name already exists.');
+      return;
+    }
+    SETS[newName] = SETS[activeFolder];
+    delete SETS[activeFolder];
+    saveSets();
+    selectFolderOptions();
+    folderSel.value = newName;
+    folderSel.onchange();
+  };
+
+  document.getElementById('deleteFolderBtn').onclick = () => {
+    if (!SETS[activeFolder]) {
+      alert('Default folders cannot be deleted.');
+      return;
+    }
+    if (!confirm(`Delete folder "${activeFolder}"? This cannot be undone.`)) return;
+    delete SETS[activeFolder];
+    saveSets();
+    selectFolderOptions();
+    folderSel.value = "Top 20";
+    folderSel.onchange();
+  };
+
+  // Import / Export
+  const exportBtn = document.getElementById('exportBtn');
+  const importBtn = document.getElementById('importBtn');
+  const importFile = document.getElementById('importFile');
+
+  function downloadFile(filename, text) {
+    const blob = new Blob([text], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  exportBtn.onclick = () => {
+    downloadFile('sight_words_sets.json', JSON.stringify({ sets: SETS }, null, 2));
+  };
+
+  importBtn.onclick = () => importFile.click();
+
+  importFile.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        let incoming = {};
+        if (parsed && parsed.sets && typeof parsed.sets === 'object') {
+          incoming = parsed.sets;
+        } else if (Array.isArray(parsed)) {
+          incoming = { Imported: parsed };
+        } else {
+          throw new Error('Invalid file format');
+        }
+
+        for (const [folder, items] of Object.entries(incoming)) {
+          if (!Array.isArray(items)) continue;
+          if (!SETS[folder]) SETS[folder] = [];
+          const key = (w, s) => String(w).trim().toLowerCase() + '|' + String(s).trim().toLowerCase();
+          const existing = new Set(SETS[folder].map(([w, s]) => key(w, s)));
+          for (const item of items) {
+            if (Array.isArray(item) && item.length >= 2) {
+              const w = String(item[0]).trim();
+              const s = String(item[1]).trim();
+              const k = key(w, s);
+              if (!existing.has(k)) {
+                SETS[folder].push([w, s]);
+                existing.add(k);
+              }
+            }
           }
         }
+        saveSets();
+        selectFolderOptions();
+        folderSel.onchange();
+        alert('Import complete.');
+        importFile.value = '';
+      } catch (err) {
+        console.error(err);
+        alert('Could not import file.');
       }
-      saveSets(); selectFolderOptions(); folderSel.onchange();
-      alert('Import complete.');
-      importFile.value = '';
-    } catch (err) {
-      console.error(err); alert('Could not import file.');
+    };
+    reader.readAsText(file);
+  });
+
+  // --- TTS HELPERS ---
+  function speak(text) {
+    if (!('speechSynthesis' in window)) {
+      alert('Text-to-Speech not supported on this device.');
+      return;
+    }
+    const u = new SpeechSynthesisUtterance(text);
+    const vs = speechSynthesis.getVoices();
+    const en = vs.find(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+    if (en) u.voice = en;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  }
+
+  function spellWord(text) {
+    const letters = text.split('').join(', ');
+    speak(letters + '. ' + text);
+  }
+
+  document.getElementById('speakBtn').onclick = () => {
+    if (!data.length) return;
+    const [w, s] = data[order[i]];
+    const m = modeSel.value;
+    if (m === 'word') speak(w);
+    else if (m === 'sentence') speak(s);
+    else speak(w + '. ' + s);
+  };
+  document.getElementById('spellBtn').onclick = () => {
+    if (!data.length) return;
+    const [w] = data[order[i]];
+    spellWord(w);
+  };
+
+  // --- SIGHT MODES SUBNAV ---
+  const sightSubnavButtons = document.querySelectorAll('.subnav button[data-sightmode]');
+  function setSightMode(mode) {
+    sightSubnavButtons.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.sightmode === mode);
+    });
+    document.querySelectorAll('.sight-mode').forEach(sec => sec.style.display = 'none');
+    document.getElementById('sight-' + mode).style.display = 'block';
+  }
+  sightSubnavButtons.forEach(btn => {
+    btn.addEventListener('click', () => setSightMode(btn.dataset.sightmode));
+  });
+
+  // --- QUIZ MODE LOGIC ---
+  let quizState = {
+    order: [],
+    currentIndex: 0,
+    score: 0
+  };
+  const quizPromptEl = document.getElementById('quizPrompt');
+  const quizSentenceHintEl = document.getElementById('quizSentenceHint');
+  const quizScorePill = document.getElementById('quizScorePill');
+  const quizChoiceButtons = Array.from(document.querySelectorAll('#sight-quiz .math-choice-btn'));
+  const quizNextBtn = document.getElementById('quizNextBtn');
+  const quizPlayBtn = document.getElementById('quizPlayBtn');
+
+  function resetQuizState() {
+    quizState.order = data.map((_, idx) => idx);
+    shuffleOrder(quizState.order);
+    quizState.currentIndex = 0;
+    quizState.score = 0;
+    quizScorePill.textContent = 'Score: 0';
+    clearQuizChoices();
+  }
+
+  function clearQuizChoices() {
+    quizChoiceButtons.forEach(btn => {
+      btn.textContent = '';
+      btn.classList.remove('correct', 'incorrect');
+      btn.disabled = true;
+    });
+  }
+
+  function setupQuizQuestion() {
+    if (!data.length) {
+      quizPromptEl.textContent = 'No cards in this folder.';
+      quizSentenceHintEl.textContent = '';
+      clearQuizChoices();
+      return;
+    }
+    if (!quizState.order.length) {
+      quizState.order = data.map((_, idx) => idx);
+      shuffleOrder(quizState.order);
+      quizState.currentIndex = 0;
+    }
+    const idx = quizState.order[quizState.currentIndex];
+    const [w, s] = data[idx];
+    quizPromptEl.textContent = 'Tap "Play Prompt" to hear the word.';
+    quizSentenceHintEl.textContent = s;
+    // Build choices: 1 correct + up to 3 distractors
+    const allIdx = data.map((_, i) => i);
+    const distractors = allIdx.filter(j => j !== idx);
+    shuffleOrder(distractors);
+    const choiceIdxs = [idx].concat(distractors.slice(0, 3));
+    shuffleOrder(choiceIdxs);
+    quizChoiceButtons.forEach((btn, i) => {
+      if (i < choiceIdxs.length) {
+        const [cw] = data[choiceIdxs[i]];
+        btn.textContent = cw;
+        btn.dataset.correct = (choiceIdxs[i] === idx) ? '1' : '0';
+        btn.classList.remove('correct', 'incorrect');
+        btn.disabled = false;
+      } else {
+        btn.textContent = '';
+        btn.disabled = true;
+      }
+    });
+  }
+
+  quizPlayBtn.onclick = () => {
+    if (!data.length) return;
+    const idx = quizState.order[quizState.currentIndex];
+    const [w, s] = data[idx];
+    speak(w);
+  };
+
+  quizChoiceButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!btn.textContent) return;
+      const correct = btn.dataset.correct === '1';
+      quizChoiceButtons.forEach(b => {
+        if (!b.textContent) return;
+        if (b.dataset.correct === '1') b.classList.add('correct');
+        else b.classList.add('incorrect');
+        b.disabled = true;
+      });
+      if (correct) {
+        quizState.score += 10;
+        quizScorePill.textContent = 'Score: ' + quizState.score;
+      }
+    });
+  });
+
+  quizNextBtn.onclick = () => {
+    if (!data.length) return;
+    quizState.currentIndex = (quizState.currentIndex + 1) % data.length;
+    setupQuizQuestion();
+  };
+
+  // --- SPELLING MODE LOGIC ---
+  let spellingState = {
+    order: [],
+    currentIndex: 0,
+    correctCount: 0
+  };
+  const spellSentenceHintEl = document.getElementById('spellSentenceHint');
+  const spellInput = document.getElementById('spellInput');
+  const spellStatusEl = document.getElementById('spellStatus');
+  const spellPlayWordBtn = document.getElementById('spellPlayWordBtn');
+  const spellPlayLettersBtn = document.getElementById('spellPlayLettersBtn');
+  const spellCheckBtn = document.getElementById('spellCheckBtn');
+  const spellNextBtn = document.getElementById('spellNextBtn');
+
+  function resetSpellingState() {
+    spellingState.order = data.map((_, idx) => idx);
+    shuffleOrder(spellingState.order);
+    spellingState.currentIndex = 0;
+    spellingState.correctCount = 0;
+    spellStatusEl.textContent = '';
+    setupSpellingQuestion();
+  }
+
+  function setupSpellingQuestion() {
+    if (!data.length) {
+      spellSentenceHintEl.textContent = 'No cards in this folder.';
+      return;
+    }
+    if (!spellingState.order.length) {
+      spellingState.order = data.map((_, idx) => idx);
+      shuffleOrder(spellingState.order);
+      spellingState.currentIndex = 0;
+    }
+    const idx = spellingState.order[spellingState.currentIndex];
+    const [w, s] = data[idx];
+    spellSentenceHintEl.textContent = s;
+    spellInput.value = '';
+    spellStatusEl.textContent = `Word ${spellingState.currentIndex + 1} of ${data.length}`;
+  }
+
+  spellPlayWordBtn.onclick = () => {
+    if (!data.length) return;
+    const idx = spellingState.order[spellingState.currentIndex];
+    const [w] = data[idx];
+    speak(w);
+  };
+  spellPlayLettersBtn.onclick = () => {
+    if (!data.length) return;
+    const idx = spellingState.order[spellingState.currentIndex];
+    const [w] = data[idx];
+    spellWord(w);
+  };
+  spellCheckBtn.onclick = () => {
+    if (!data.length) return;
+    const idx = spellingState.order[spellingState.currentIndex];
+    const [w] = data[idx];
+    const answer = spellInput.value.trim().toLowerCase();
+    const target = w.toLowerCase();
+    if (!answer) return;
+    if (answer === target) {
+      spellingState.correctCount += 1;
+      spellStatusEl.textContent = 'Correct! ✅';
+    } else {
+      spellStatusEl.textContent = `Try again. The word is "${w}".`;
     }
   };
-  reader.readAsText(file);
-});
+  spellNextBtn.onclick = () => {
+    if (!data.length) return;
+    spellingState.currentIndex = (spellingState.currentIndex + 1) % data.length;
+    setupSpellingQuestion();
+  };
 
-render();
+  // --- SIGHT CHALLENGE MODE ---
+  const SW_CHALLENGE_KEY = 'sw_challenge_scores_v1';
+  let swChallengeScores = { quiz: [], spelling: [] };
+  try {
+    const raw = localStorage.getItem(SW_CHALLENGE_KEY);
+    if (raw) swChallengeScores = JSON.parse(raw);
+  } catch {
+    swChallengeScores = { quiz: [], spelling: [] };
+  }
+
+  function saveSwChallengeScores() {
+    localStorage.setItem(SW_CHALLENGE_KEY, JSON.stringify(swChallengeScores));
+  }
+
+  function combinedSwScoresList() {
+    const all = [...(swChallengeScores.quiz || []), ...(swChallengeScores.spelling || [])];
+    all.sort((a, b) => b.score - a.score);
+    return all.slice(0, 10);
+  }
+
+  function renderSwHomeLeaderboard() {
+    const el = document.getElementById('sw-home-leaderboard');
+    const list = combinedSwScoresList();
+    if (!list.length) {
+      el.innerHTML = '<div class="hint">No scores yet. Try Challenge 60 to set a record.</div>';
+      return;
+    }
+    el.innerHTML = '';
+    list.forEach((entry, idx) => {
+      const row = document.createElement('div');
+      row.className = 'leaderboard-row';
+      row.innerHTML = `<span>${idx + 1}. ${entry.name || 'Player'} (${entry.type})</span><span class="score">${entry.score}</span>`;
+      el.appendChild(row);
+    });
+  }
+
+  renderSwHomeLeaderboard();
+
+  const swChallengeTypeSel = document.getElementById('swChallengeType');
+  const swChallengeStartBtn = document.getElementById('swChallengeStartBtn');
+  const swChallengeTimerEl = document.getElementById('swChallengeTimer');
+  const swChallengeScorePill = document.getElementById('swChallengeScorePill');
+  const swChallengeCard = document.getElementById('swChallengeCard');
+  const swChallengePrompt = document.getElementById('swChallengePrompt');
+  const swChallengeSentence = document.getElementById('swChallengeSentence');
+  const swChallengeQuizChoices = Array.from(document.querySelectorAll('#swChallengeQuizChoices .math-choice-btn'));
+  const swChallengeSpellInput = document.getElementById('swChallengeSpellInput');
+  const swChallengePlayWordBtn = document.getElementById('swChallengePlayWordBtn');
+  const swChallengePlayLettersBtn = document.getElementById('swChallengePlayLettersBtn');
+  const swChallengeSpellCheckBtn = document.getElementById('swChallengeSpellCheckBtn');
+  const swChallengeQuizChoicesWrapper = document.getElementById('swChallengeQuizChoices');
+  const swChallengeSpellingControls = document.getElementById('swChallengeSpellingControls');
+  const swChallengeResults = document.getElementById('swChallengeResults');
+  const swChallengeResultsList = document.getElementById('swChallengeResultsList');
+  const swChallengeLeaderboardEl = document.getElementById('swChallengeLeaderboard');
+
+  let swChallengeState = null;
+  let swChallengeTimerId = null;
+
+  function renderSwChallengeLeaderboard() {
+    const listQuiz = (swChallengeScores.quiz || []).slice().sort((a,b)=>b.score-a.score).slice(0,10);
+    const listSpell = (swChallengeScores.spelling || []).slice().sort((a,b)=>b.score-a.score).slice(0,10);
+    swChallengeLeaderboardEl.innerHTML = '';
+
+    function addSection(title, list) {
+      const titleEl = document.createElement('div');
+      titleEl.style.marginTop = '0.35rem';
+      titleEl.innerHTML = `<strong>${title}</strong>`;
+      swChallengeLeaderboardEl.appendChild(titleEl);
+      if (!list.length) {
+        const p = document.createElement('div');
+        p.className = 'hint';
+        p.textContent = 'No scores yet.';
+        swChallengeLeaderboardEl.appendChild(p);
+      } else {
+        list.forEach((entry, idx) => {
+          const row = document.createElement('div');
+          row.className = 'leaderboard-row';
+          row.innerHTML = `<span>${idx + 1}. ${entry.name || 'Player'}</span><span class="score">${entry.score}</span>`;
+          swChallengeLeaderboardEl.appendChild(row);
+        });
+      }
+    }
+
+    addSection('Quiz', listQuiz);
+    addSection('Spelling', listSpell);
+  }
+
+  renderSwChallengeLeaderboard();
+
+  function startSwChallenge() {
+    if (!data.length) {
+      alert('No cards in this folder.');
+      return;
+    }
+    const type = swChallengeTypeSel.value; // 'quiz' or 'spelling'
+    swChallengeState = {
+      type,
+      score: 0,
+      answered: [],
+      remaining: 60,
+      indexOrder: data.map((_, idx) => idx)
+    };
+    shuffleOrder(swChallengeState.indexOrder);
+    swChallengeScorePill.textContent = 'Score: 0';
+    swChallengeResults.style.display = 'none';
+    swChallengeResultsList.innerHTML = '';
+    swChallengeSpellInput.value = '';
+    swChallengeCard.classList.remove('sparkle');
+
+    if (type === 'quiz') {
+      swChallengeQuizChoicesWrapper.style.display = 'grid';
+      swChallengeSpellingControls.style.display = 'none';
+    } else {
+      swChallengeQuizChoicesWrapper.style.display = 'none';
+      swChallengeSpellingControls.style.display = 'block';
+    }
+
+    if (swChallengeTimerId) clearInterval(swChallengeTimerId);
+    swChallengeTimerEl.textContent = 'Time: 60';
+    swChallengeTimerId = setInterval(() => {
+      if (!swChallengeState) return;
+      swChallengeState.remaining -= 1;
+      if (swChallengeState.remaining <= 0) {
+        swChallengeTimerEl.textContent = 'Time: 0';
+        endSwChallenge();
+      } else {
+        swChallengeTimerEl.textContent = 'Time: ' + swChallengeState.remaining;
+      }
+    }, 1000);
+
+    nextSwChallengeQuestion();
+  }
+
+  function nextSwChallengeQuestion() {
+    if (!swChallengeState) return;
+    if (!swChallengeState.indexOrder.length) {
+      swChallengeState.indexOrder = data.map((_, idx) => idx);
+      shuffleOrder(swChallengeState.indexOrder);
+    }
+    const idx = swChallengeState.indexOrder.pop();
+    swChallengeState.currentIdx = idx;
+    const [w, s] = data[idx];
+    swChallengePrompt.textContent = (swChallengeState.type === 'quiz')
+      ? 'Tap the correct word below.'
+      : 'Listen and spell the word.';
+    swChallengeSentence.textContent = s;
+    swChallengeCard.classList.remove('sparkle');
+
+    if (swChallengeState.type === 'quiz') {
+      // build choices
+      const allIdx = data.map((_, i) => i);
+      const distractors = allIdx.filter(j => j !== idx);
+      shuffleOrder(distractors);
+      const choiceIdxs = [idx].concat(distractors.slice(0, 3));
+      shuffleOrder(choiceIdxs);
+      swChallengeQuizChoices.forEach((btn, i) => {
+        if (i < choiceIdxs.length) {
+          const [cw] = data[choiceIdxs[i]];
+          btn.textContent = cw;
+          btn.dataset.correct = (choiceIdxs[i] === idx) ? '1' : '0';
+          btn.classList.remove('correct', 'incorrect');
+          btn.disabled = false;
+        } else {
+          btn.textContent = '';
+          btn.disabled = true;
+        }
+      });
+    } else {
+      swChallengeSpellInput.value = '';
+    }
+  }
+
+  swChallengeQuizChoices.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!swChallengeState || swChallengeState.type !== 'quiz') return;
+      if (!btn.textContent) return;
+      const idx = swChallengeState.currentIdx;
+      const [correctWord] = data[idx];
+      const chosen = btn.textContent;
+      const correct = (btn.dataset.correct === '1');
+      swChallengeQuizChoices.forEach(b => {
+        if (!b.textContent) return;
+        if (b.dataset.correct === '1') b.classList.add('correct');
+        else b.classList.add('incorrect');
+        b.disabled = true;
+      });
+      if (correct) {
+        swChallengeState.score += 10;
+        swChallengeScorePill.textContent = 'Score: ' + swChallengeState.score;
+        swChallengeCard.classList.add('sparkle');
+      }
+      swChallengeState.answered.push({
+        question: correctWord,
+        userAnswer: chosen,
+        correctAnswer: correctWord,
+        correct
+      });
+      setTimeout(() => {
+        if (!swChallengeState) return;
+        swChallengeCard.classList.remove('sparkle');
+        nextSwChallengeQuestion();
+      }, 400);
+    });
+  });
+
+  swChallengePlayWordBtn.onclick = () => {
+    if (!swChallengeState || swChallengeState.type !== 'spelling') return;
+    const [w] = data[swChallengeState.currentIdx];
+    speak(w);
+  };
+  swChallengePlayLettersBtn.onclick = () => {
+    if (!swChallengeState || swChallengeState.type !== 'spelling') return;
+    const [w] = data[swChallengeState.currentIdx];
+    spellWord(w);
+  };
+  swChallengeSpellCheckBtn.onclick = () => {
+    if (!swChallengeState || swChallengeState.type !== 'spelling') return;
+    const idx = swChallengeState.currentIdx;
+    const [correctWord] = data[idx];
+    const answer = swChallengeSpellInput.value.trim().toLowerCase();
+    if (!answer) return;
+    const correct = (answer === correctWord.toLowerCase());
+    if (correct) {
+      swChallengeState.score += 10;
+      swChallengeScorePill.textContent = 'Score: ' + swChallengeState.score;
+      swChallengeCard.classList.add('sparkle');
+    }
+    swChallengeState.answered.push({
+      question: correctWord,
+      userAnswer: answer,
+      correctAnswer: correctWord,
+      correct
+    });
+    setTimeout(() => {
+      if (!swChallengeState) return;
+      swChallengeCard.classList.remove('sparkle');
+      nextSwChallengeQuestion();
+    }, 400);
+  };
+
+  function endSwChallenge() {
+    if (swChallengeTimerId) {
+      clearInterval(swChallengeTimerId);
+      swChallengeTimerId = null;
+    }
+    if (!swChallengeState) return;
+    const { type, score, answered } = swChallengeState;
+    // Build results list
+    swChallengeResults.style.display = 'block';
+    swChallengeResultsList.innerHTML = '';
+    answered.forEach(entry => {
+      const row = document.createElement('div');
+      row.className = 'leaderboard-row';
+      row.innerHTML = `<span>${entry.question}</span><span>${entry.userAnswer || '(blank)'} → ${entry.correctAnswer} ${entry.correct ? '✅' : '❌'}</span>`;
+      swChallengeResultsList.appendChild(row);
+    });
+    // Save score if high enough
+    const list = swChallengeScores[type] || [];
+    const newEntry = { score, type, date: Date.now(), name: '' };
+    const combined = list.concat([newEntry]).sort((a,b)=>b.score-a.score).slice(0,10);
+    const isHighScore = combined.includes(newEntry);
+    if (isHighScore && score > 0) {
+      const name = prompt('New high score! Enter a name:') || 'Player';
+      newEntry.name = name;
+    }
+    swChallengeScores[type] = combined;
+    saveSwChallengeScores();
+    renderSwChallengeLeaderboard();
+    renderSwHomeLeaderboard();
+    swChallengeState = null;
+  }
+
+  swChallengeStartBtn.onclick = startSwChallenge;
+
+  // --- QUICK MATH PRACTICE ---
+  const mathPracticeTypeSel = document.getElementById('mathPracticeType');
+  const mathPracticeScorePill = document.getElementById('mathPracticeScorePill');
+  const mathPracticeProblemEl = document.getElementById('mathPracticeProblem');
+  const mathPracticeAnswerEl = document.getElementById('mathPracticeAnswer');
+  const mathPracticeCard = document.getElementById('mathPracticeCard');
+  const mathPracticeChoiceBtns = Array.from(document.querySelectorAll('#mathPracticeChoices .math-choice-btn'));
+
+  let mathPracticeState = {
+    type: 'addition',
+    score: 0,
+    current: null
+  };
+
+  function simpleBeep(correct) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = correct ? 880 : 220;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0.001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.1, ctx.currentTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.3);
+    } catch (e) {}
+  }
+
+  function generateMathProblem(type) {
+    let a, b, op, answer;
+    switch (type) {
+      case 'addition':
+        a = Math.floor(Math.random() * 10) + 1;
+        b = Math.floor(Math.random() * 10) + 1;
+        op = '+';
+        answer = a + b;
+        break;
+      case 'subtraction':
+        a = Math.floor(Math.random() * 10) + 1;
+        b = Math.floor(Math.random() * a); // ensure non-negative
+        op = '−';
+        answer = a - b;
+        break;
+      case 'multiplication':
+        a = Math.floor(Math.random() * 10) + 1;
+        b = Math.floor(Math.random() * 10) + 1;
+        op = '×';
+        answer = a * b;
+        break;
+      case 'division':
+        b = Math.floor(Math.random() * 9) + 1;
+        answer = Math.floor(Math.random() * 10) + 1;
+        a = answer * b;
+        op = '÷';
+        break;
+      case 'mixed':
+      default:
+        const types = ['addition', 'subtraction', 'multiplication', 'division'];
+        return generateMathProblem(types[Math.floor(Math.random() * types.length)]);
+    }
+    return { a, b, op, answer };
+  }
+
+  function setupMathPractice() {
+    const type = mathPracticeTypeSel.value;
+    mathPracticeState.type = type;
+    mathPracticeState.current = generateMathProblem(type);
+    const p = mathPracticeState.current;
+    mathPracticeProblemEl.textContent = `${p.a} ${p.op} ${p.b} = ?`;
+    mathPracticeAnswerEl.textContent = 'Choose an answer below.';
+    mathPracticeCard.classList.remove('sparkle');
+    // Build choices
+    const choices = new Set();
+    choices.add(p.answer);
+    while (choices.size < 4) {
+      const delta = Math.floor(Math.random() * 10) - 5;
+      const c = p.answer + delta;
+      if (c > 0) choices.add(c);
+    }
+    const arr = Array.from(choices);
+    shuffleOrder(arr);
+    mathPracticeChoiceBtns.forEach((btn, i) => {
+      const val = arr[i];
+      btn.textContent = val;
+      btn.classList.remove('correct', 'incorrect');
+      btn.disabled = false;
+      btn.dataset.correct = (val === p.answer) ? '1' : '0';
+    });
+  }
+
+  mathPracticeChoiceBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!mathPracticeState.current) return;
+      const correct = btn.dataset.correct === '1';
+      mathPracticeChoiceBtns.forEach(b => {
+        if (b.dataset.correct === '1') b.classList.add('correct');
+        else b.classList.add('incorrect');
+        b.disabled = true;
+      });
+      if (correct) {
+        mathPracticeState.score += 10;
+        mathPracticeScorePill.textContent = 'Score: ' + mathPracticeState.score;
+        mathPracticeAnswerEl.textContent = 'Correct!';
+        mathPracticeCard.classList.add('sparkle');
+        simpleBeep(true);
+      } else {
+        mathPracticeAnswerEl.textContent = 'Not quite. The correct answer is ' + mathPracticeState.current.answer + '.';
+        mathPracticeCard.classList.remove('sparkle');
+        simpleBeep(false);
+      }
+      setTimeout(() => {
+        mathPracticeCard.classList.remove('sparkle');
+        setupMathPractice();
+      }, 450);
+    });
+  });
+
+  // Swipe navigation for math practice
+  let mathTouchStartX = null;
+  mathPracticeCard.addEventListener('touchstart', (e) => {
+    mathTouchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+  mathPracticeCard.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].screenX - mathTouchStartX;
+    if (Math.abs(dx) > 50) {
+      setupMathPractice();
+    }
+  }, { passive: true });
+
+  mathPracticeTypeSel.onchange = () => {
+    setupMathPractice();
+  };
+
+  // --- MATH CHALLENGE (Math Sprint 60) ---
+  const MATH_CHALLENGE_KEY = 'math_challenge_scores_v1';
+  let mathChallengeScores = { addition: [], subtraction: [], multiplication: [], division: [], mixed: [] };
+  try {
+    const raw = localStorage.getItem(MATH_CHALLENGE_KEY);
+    if (raw) mathChallengeScores = JSON.parse(raw);
+  } catch {
+    mathChallengeScores = { addition: [], subtraction: [], multiplication: [], division: [], mixed: [] };
+  }
+
+  function saveMathChallengeScores() {
+    localStorage.setItem(MATH_CHALLENGE_KEY, JSON.stringify(mathChallengeScores));
+  }
+
+  const mathChallengeTypeSel = document.getElementById('mathChallengeType');
+  const mathChallengeStartBtn = document.getElementById('mathChallengeStartBtn');
+  const mathChallengeTimerEl = document.getElementById('mathChallengeTimer');
+  const mathChallengeScorePill = document.getElementById('mathChallengeScorePill');
+  const mathChallengeCard = document.getElementById('mathChallengeCard');
+  const mathChallengeProblemEl = document.getElementById('mathChallengeProblem');
+  const mathChallengeAnswerEl = document.getElementById('mathChallengeAnswer');
+  const mathChallengeChoiceBtns = Array.from(document.querySelectorAll('#mathChallengeChoices .math-choice-btn'));
+  const mathChallengeResults = document.getElementById('mathChallengeResults');
+  const mathChallengeResultsList = document.getElementById('mathChallengeResultsList');
+  const mathLeaderboardsEl = document.getElementById('mathLeaderboards');
+
+  let mathChallengeState = null;
+  let mathChallengeTimerId = null;
+
+  function renderMathLeaderboards() {
+    mathLeaderboardsEl.innerHTML = '';
+    const types = ['addition','subtraction','multiplication','division','mixed'];
+    const labels = {
+      addition: 'Addition',
+      subtraction: 'Subtraction',
+      multiplication: 'Multiplication',
+      division: 'Division',
+      mixed: 'Mixed'
+    };
+    types.forEach(type => {
+      const list = (mathChallengeScores[type] || []).slice().sort((a,b)=>b.score-a.score).slice(0,10);
+      const card = document.createElement('div');
+      card.className = 'settings-group';
+      card.innerHTML = `<h3>${labels[type]}</h3>`;
+      if (!list.length) {
+        const p = document.createElement('div');
+        p.className = 'hint';
+        p.textContent = 'No scores yet.';
+        card.appendChild(p);
+      } else {
+        list.forEach((entry, idx) => {
+          const row = document.createElement('div');
+          row.className = 'leaderboard-row';
+          row.innerHTML = `<span>${idx + 1}. ${entry.name || 'Player'}</span><span class="score">${entry.score}</span>`;
+          card.appendChild(row);
+        });
+      }
+      mathLeaderboardsEl.appendChild(card);
+    });
+  }
+
+  renderMathLeaderboards();
+
+  function startMathChallenge() {
+    const type = mathChallengeTypeSel.value;
+    mathChallengeState = {
+      type,
+      score: 0,
+      remaining: 60,
+      current: null,
+      answered: []
+    };
+    mathChallengeScorePill.textContent = 'Score: 0';
+    mathChallengeResults.style.display = 'none';
+    mathChallengeResultsList.innerHTML = '';
+    mathChallengeCard.classList.remove('sparkle');
+    if (mathChallengeTimerId) clearInterval(mathChallengeTimerId);
+    mathChallengeTimerEl.textContent = 'Time: 60';
+    mathChallengeTimerId = setInterval(() => {
+      if (!mathChallengeState) return;
+      mathChallengeState.remaining -= 1;
+      if (mathChallengeState.remaining <= 0) {
+        mathChallengeTimerEl.textContent = 'Time: 0';
+        endMathChallenge();
+      } else {
+        mathChallengeTimerEl.textContent = 'Time: ' + mathChallengeState.remaining;
+      }
+    }, 1000);
+    setupMathChallengeQuestion();
+  }
+
+  function setupMathChallengeQuestion() {
+    if (!mathChallengeState) return;
+    const type = mathChallengeState.type;
+    mathChallengeState.current = generateMathProblem(type);
+    const p = mathChallengeState.current;
+    mathChallengeProblemEl.textContent = `${p.a} ${p.op} ${p.b} = ?`;
+    mathChallengeAnswerEl.textContent = 'Choose an answer.';
+    mathChallengeCard.classList.remove('sparkle');
+    const choices = new Set();
+    choices.add(p.answer);
+    while (choices.size < 4) {
+      const delta = Math.floor(Math.random() * 10) - 5;
+      const c = p.answer + delta;
+      if (c > 0) choices.add(c);
+    }
+    const arr = Array.from(choices);
+    shuffleOrder(arr);
+    mathChallengeChoiceBtns.forEach((btn, i) => {
+      const val = arr[i];
+      btn.textContent = val;
+      btn.classList.remove('correct', 'incorrect');
+      btn.disabled = false;
+      btn.dataset.correct = (val === p.answer) ? '1' : '0';
+    });
+  }
+
+  mathChallengeChoiceBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!mathChallengeState || !mathChallengeState.current) return;
+      const correct = btn.dataset.correct === '1';
+      mathChallengeChoiceBtns.forEach(b => {
+        if (b.dataset.correct === '1') b.classList.add('correct');
+        else b.classList.add('incorrect');
+        b.disabled = true;
+      });
+      const p = mathChallengeState.current;
+      if (correct) {
+        mathChallengeState.score += 10;
+        mathChallengeScorePill.textContent = 'Score: ' + mathChallengeState.score;
+        mathChallengeAnswerEl.textContent = 'Correct!';
+        mathChallengeCard.classList.add('sparkle');
+        simpleBeep(true);
+      } else {
+        mathChallengeAnswerEl.textContent = 'Not quite. The correct answer is ' + p.answer + '.';
+        mathChallengeCard.classList.remove('sparkle');
+        simpleBeep(false);
+      }
+      mathChallengeState.answered.push({
+        problem: `${p.a} ${p.op} ${p.b}`,
+        correctAnswer: p.answer,
+        correct
+      });
+      setTimeout(() => {
+        if (!mathChallengeState) return;
+        mathChallengeCard.classList.remove('sparkle');
+        setupMathChallengeQuestion();
+      }, 400);
+    });
+  });
+
+  function endMathChallenge() {
+    if (mathChallengeTimerId) {
+      clearInterval(mathChallengeTimerId);
+      mathChallengeTimerId = null;
+    }
+    if (!mathChallengeState) return;
+    const { type, score, answered } = mathChallengeState;
+    // Results list
+    mathChallengeResults.style.display = 'block';
+    mathChallengeResultsList.innerHTML = '';
+    answered.forEach(entry => {
+      const row = document.createElement('div');
+      row.className = 'leaderboard-row';
+      row.innerHTML = `<span>${entry.problem}</span><span>${entry.correctAnswer} ${entry.correct ? '✅' : '❌'}</span>`;
+      mathChallengeResultsList.appendChild(row);
+    });
+    // Save top 10
+    const list = mathChallengeScores[type] || [];
+    const newEntry = { score, type, date: Date.now(), name: '' };
+    const combined = list.concat([newEntry]).sort((a,b)=>b.score-a.score).slice(0,10);
+    const isHighScore = combined.includes(newEntry);
+    if (isHighScore && score > 0) {
+      const name = prompt('New high score! Enter a name:') || 'Player';
+      newEntry.name = name;
+    }
+    mathChallengeScores[type] = combined;
+    saveMathChallengeScores();
+    renderMathLeaderboards();
+    mathChallengeState = null;
+  }
+
+  mathChallengeStartBtn.onclick = startMathChallenge;
+
+  // --- MATH SUBNAV ---
+  const mathSubnavButtons = document.querySelectorAll('.subnav button[data-mathmode]');
+  function setMathMode(mode) {
+    mathSubnavButtons.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.mathmode === mode);
+    });
+    document.querySelectorAll('.math-mode').forEach(sec => sec.style.display = 'none');
+    document.getElementById('math-' + mode).style.display = 'block';
+  }
+  mathSubnavButtons.forEach(btn => {
+    btn.addEventListener('click', () => setMathMode(btn.dataset.mathmode));
+  });
+
+  // --- INITIALIZE EVERYTHING ---
+  renderFlashcard();
+  resetQuizState();
+  resetSpellingState();
+  setupMathPractice();
+
+  // Expose sight mode switch for home tile
+  window.setSightMode = setSightMode;
 </script>
 </body>
 </html>
