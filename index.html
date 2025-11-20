@@ -1589,12 +1589,20 @@
     const { score, answered } = swChallengeState;
     swChallengeResults.style.display = 'block';
     swChallengeResultsList.innerHTML = '';
-    answered.forEach(entry => {
-      const row = document.createElement('div');
-      row.className = 'leaderboard-row';
-      row.innerHTML = `<span>${entry.question}</span><span>${entry.userAnswer || '(blank)'} → ${entry.correctAnswer} ${entry.correct ? '✅' : '❌'}</span>`;
-      swChallengeResultsList.appendChild(row);
-    });
+      answered.forEach(entry => {
+    const row = document.createElement('div');
+    row.className = 'leaderboard-row';
+
+    const userAns = entry.userAnswer ? entry.userAnswer : '(blank)';
+    const mark = entry.correct ? '✅' : '❌';
+
+    row.innerHTML =
+      '<span>' + entry.question + '</span>' +
+      '<span>' + userAns + ' → ' + entry.correctAnswer + ' ' + mark + '</span>';
+
+    swChallengeResultsList.appendChild(row);
+  });
+
     const newEntry = { score, date: Date.now(), name: '' };
     const combined = swChallengeScores.concat([newEntry]).sort((a,b)=>b.score-a.score).slice(0,10);
     const isHighScore = combined.includes(newEntry) && score > 0;
@@ -1859,7 +1867,20 @@
     const { type, score, answered } = mathChallengeState;
     mathChallengeResults.style.display = 'block';
     mathChallengeResultsList.innerHTML = '';
-    answered.forEach(entry=>{
+      answered.forEach(entry => {
+    const row = document.createElement('div');
+    row.className = 'leaderboard-row';
+
+    const userAns = entry.userAnswer ? entry.userAnswer : '(blank)';
+    const mark = entry.correct ? '✅' : '❌';
+
+    row.innerHTML =
+      '<span>' + entry.question + '</span>' +
+      '<span>' + userAns + ' → ' + entry.correctAnswer + ' ' + mark + '</span>';
+
+    swChallengeResultsList.appendChild(row);
+  });
+
       const row = document.createElement('div');
       row.className = 'leaderboard-row';
       row.innerHTML = `<span>${entry.problem}</span><span>${entry.correctAnswer} ${entry.correct ? '✅':'❌'}</span>`;
