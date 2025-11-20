@@ -792,23 +792,25 @@
   menuToggle.onclick = openMenu;
   menuOverlay.onclick = closeMenu;
 
-  function switchView(viewId) {
-    document.querySelectorAll('section.view').forEach(sec => {
+   function switchView(viewId) {
+    document.querySelectorAll('section.view').forEach(function (sec) {
       sec.classList.toggle('active', sec.id === 'view-' + viewId);
     });
-    menuLinks.forEach(btn => {
+    menuLinks.forEach(function (btn) {
       btn.classList.toggle('active', btn.dataset.view === viewId);
     });
   }
-  menuLinks.forEach(btn => {
-    btn.addEventListener('click', () => {
+
+  menuLinks.forEach(function (btn) {
+    btn.addEventListener('click', function () {
       switchView(btn.dataset.view);
       closeMenu();
     });
-  }
+  });
 
   // --- Sight words data ---
   const DEFAULT_SETS = {
+
     "Top 20": [
       ["the", "The cat is on the bed."],
       ["of", "A glass of water."],
