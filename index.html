@@ -1858,48 +1858,52 @@
     });
   });
   mathChallengeStartBtn.onclick = startMathChallenge;
-  function endMathChallenge() {
-    if (mathChallengeTimerId) {
-      clearInterval(mathChallengeTimerId);
-      mathChallengeTimerId = null;
-    }
-    if (!mathChallengeState) return;
-    const { type, score, answered } = mathChallengeState;
-    mathChallengeResults.style.display = 'block';
-    mathChallengeResultsList.innerHTML = '';
-      answered.forEach(entry => {
+function endMathChallenge() {
+  if (mathChallengeTimerId) {
+    clearInterval(mathChallengeTimerId);
+    mathChallengeTimerId = null;
+  }
+  if (!mathChallengeState) return;
+
+  const { type, score, answered } = mathChallengeState;
+
+  // Show the results section
+  mathChallengeResults.style.display = 'block';
+  mathChallengeResultsList.innerHTML = '';
+
+  // List each problem and whether it was correct
+  answered.forEach(entry => {
     const row = document.createElement('div');
     row.className = 'leaderboard-row';
 
-    const userAns = entry.userAnswer ? entry.userAnswer : '(blank)';
     const mark = entry.correct ? '✅' : '❌';
 
     row.innerHTML =
-      '<span>' + entry.question + '</span>' +
-      '<span>' + userAns + ' → ' + entry.correctAnswer + ' ' + mark + '</span>';
+      '<span>' + entry.problem + '</span>' +
+      '<span>' + entry.correctAnswer + ' ' + mark + '</span>';
 
-    swChallengeResultsList.appendChild(row);
+    mathChallengeResultsList.appendChild(row);
   });
 
-      const row = document.createElement('div');
-      row.className = 'leaderboard-row';
-      row.innerHTML = `<span>${entry.problem}</span><span>${entry.correctAnswer} ${entry.correct ? '✅':'❌'}</span>`;
-      mathChallengeResultsList.appendChild(row);
-    });
-    const list = mathChallengeScores[type] || [];
-    const newEntry = { score, type, date: Date.now(), name: '' };
-    const combined = list.concat([newEntry]).sort((a,b)=>b.score-a.score).slice(0,10);
-    const isHighScore = combined.includes(newEntry) && score > 0;
-    if (isHighScore) {
-      const name = prompt('New high score! Enter a name:') || 'Player';
-      newEntry.name = name;
-    }
-    mathChallengeScores[type] = combined;
-    saveMathChallengeScores();
-    renderMathLeaderboards();
-    renderMathHomeTop();
-    mathChallengeState = null;
+  // Leaderboard logic
+  const list = mathChallengeScores[type] || [];
+  const newEntry = { score, type, date: Date.now(), name: '' };
+  const combined = list.concat([newEntry])
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
+
+  const isHighScore = combined.includes(newEntry) && score > 0;
+  if (isHighScore) {
+    const name = prompt('New high score! Enter a name:') || 'Player';
+    newEntry.name = name;
   }
+
+  mathChallengeScores[type] = combined;
+  saveMathChallengeScores();
+  renderMathLeaderboards();
+  renderMathHomeTop();
+  mathChallengeState = null;
+}
 
   function renderMathLeaderboards() {
     mathLeaderboardsPageEl.innerHTML = '';
