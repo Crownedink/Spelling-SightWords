@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -267,6 +268,39 @@
     }
 
     .card {
+          /* Timer + score inside Challenge 60 card */
+    .card-metrics {
+      position: absolute;
+      top: 0.6rem;
+      left: 0.8rem;
+      right: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .card-metrics .pill {
+      pointer-events: auto;
+      font-size: 0.95rem;
+      padding: 0.35rem 0.9rem;
+      background: var(--bg-alt);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 700;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.25);
+    }
+
+    .pill-large {
+      font-size: 1rem;
+    }
+
+    /* Make the Challenge 60 play button feel central and obvious */
+    .sw-play-btn {
+      width: 100%;
+      max-width: 260px;
+    }
+
       user-select: none;
       width: 100%;
       height: 55vh;
@@ -306,9 +340,12 @@
       left: 1rem;
       right: 1rem;
       color: var(--muted);
-      font-size: clamp(0.95rem, 2.2vw, 1.1rem);
+      font-size: clamp(1.05rem, 2.4vw, 1.25rem);
     }
-
+  .sight-highlight {
+    color: var(--accent2);
+    font-weight: 700;
+  }
     .status {
       margin-top: 0.25rem;
     }
@@ -615,23 +652,32 @@
       </div>
 
       <!-- SIGHT WORDS CHALLENGE 60 (SPELLING ONLY) -->
-      <div id="sight-challenge" class="sight-mode" style="display:none;">
+           <div id="sight-challenge" class="sight-mode" style="display:none;">
         <div class="row flex-between">
           <div>
             <strong>Challenge 60 (Spelling Only)</strong>
-            <div class="hint">60 seconds. Each correct spelling = 10 points. Press Enter to submit. Next word auto-plays.</div>
+            <div class="hint">
+              60 seconds. Each correct spelling = 10 points. Press Enter to submit. Next word auto-plays.
+            </div>
           </div>
-          <button id="swChallengePlayWordBtn" class="btn-small">Play Word 🔊</button>
         </div>
 
         <div class="row">
           <button id="swChallengeStartBtn" class="btn-primary">Start Challenge</button>
-          <span class="pill" id="swChallengeTimer">Time: 60</span>
-          <span class="pill" id="swChallengeScorePill">Score: 0</span>
         </div>
 
         <div class="card" id="swChallengeCard">
+          <!-- Timer & score inside the card -->
+          <div class="card-metrics">
+            <span class="pill pill-large" id="swChallengeTimer">Time: 60</span>
+            <span class="pill pill-large" id="swChallengeScorePill">Score: 0</span>
+          </div>
+
           <div class="center-input-wrap">
+            <!-- Play word button moved into the center tile -->
+            <button id="swChallengePlayWordBtn" class="btn-small btn-primary sw-play-btn">
+              Play Word 🔊
+            </button>
             <div id="swChallengeSentence" class="hint" style="position:static;"></div>
             <input id="swChallengeSpellInput" type="text" placeholder="Type the word here">
           </div>
@@ -642,6 +688,7 @@
           <div class="stack" id="swChallengeResultsList"></div>
         </div>
       </div>
+
     </section>
 
     <!-- QUICK MATH VIEW -->
@@ -978,7 +1025,16 @@
     countPill.textContent = data.length + " cards";
   }
 
-  function renderFlashcard() {
+   function highlightSightWordInSentence(word, sentence) {
+    if (!sentence) return '';
+    // Escape regex characters in the word
+    const escaped = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const re = new RegExp('\\b' + escaped + '\\b', 'i');
+    return sentence.replace(re, function (match) {
+      return '<span class="sight-highlight">' + match + '</span>';
+    });
+  }
+    function renderFlashcard() {
     if (!data.length) {
       wordEl.textContent = "(empty)";
       sentenceEl.textContent = "Add words to this folder, or choose another folder.";
@@ -991,19 +1047,29 @@
     const w = pair[0];
     const s = pair[1];
     const mode = modeSel.value;
+
     if (mode === 'word') {
+      // Show only the word; sentence appears when flipped
       wordEl.textContent = w;
-      sentenceEl.textContent = flipped ? s : '';
+      if (flipped) {
+        sentenceEl.innerHTML = highlightSightWordInSentence(w, s);
+      } else {
+        sentenceEl.textContent = '';
+      }
     } else if (mode === 'sentence') {
+      // Always show the sentence; word appears when flipped
       wordEl.textContent = flipped ? w : '';
-      sentenceEl.textContent = s;
+      sentenceEl.innerHTML = highlightSightWordInSentence(w, s);
     } else {
+      // both
       wordEl.textContent = w;
-      sentenceEl.textContent = s;
+      sentenceEl.innerHTML = highlightSightWordInSentence(w, s);
     }
+
     statusEl.textContent = "Card " + (i + 1) + " / " + data.length + " • " + activeFolder;
     updateCount();
   }
+
 
   function flipFlashcard() { flipped = !flipped; renderFlashcard(); }
   function nextFlashcard() {
@@ -1750,33 +1816,45 @@
     });
   }
 
-  mathPracticeChoiceBtns.forEach(function (btn) {
+    mathPracticeChoiceBtns.forEach(function (btn) {
     btn.addEventListener('click', function () {
       if (!mathPracticeState.current) return;
-      const correct = btn.dataset.correct === '1';
-      mathPracticeChoiceBtns.forEach(function (b) {
-        if (b.dataset.correct === '1') b.classList.add('correct');
-        else b.classList.add('incorrect');
-        b.disabled = true;
-      });
-      const p = mathPracticeState.current;
-      if (correct) {
+
+      var isCorrect = btn.dataset.correct === '1';
+      var p = mathPracticeState.current;
+
+      if (isCorrect) {
+        // Mark all answers and lock them
+        mathPracticeChoiceBtns.forEach(function (b) {
+          if (b.dataset.correct === '1') b.classList.add('correct');
+          else b.classList.add('incorrect');
+          b.disabled = true;
+        });
+
         mathPracticeState.score += 10;
         mathPracticeScorePill.textContent = 'Score: ' + mathPracticeState.score;
         mathPracticeAnswerEl.textContent = 'Correct!';
         mathPracticeCard.classList.add('sparkle');
         simpleBeep(true);
+
+        // Wait 3 seconds, then go to next problem
+        setTimeout(function () {
+          mathPracticeCard.classList.remove('sparkle');
+          setupMathPractice();
+        }, 3000);
       } else {
-        mathPracticeAnswerEl.textContent = 'Not quite. The correct answer is ' + p.answer + '.';
-        mathPracticeCard.classList.remove('sparkle');
+        // Wrong answer: DO NOT advance, let them choose again
+        // Mark only this button as incorrect and disable just this one
+        btn.classList.add('incorrect');
+        btn.disabled = true;
+
+        mathPracticeAnswerEl.textContent = 'Not quite. Try again!';
         simpleBeep(false);
+        // No timeout, no auto-advance
       }
-      setTimeout(function () {
-        mathPracticeCard.classList.remove('sparkle');
-        setupMathPractice();
-      }, 450);
     });
   });
+
   // Math practice swipe
   let mathTouchStartX = null;
   mathPracticeCard.addEventListener('touchstart', function (e) {
@@ -1876,13 +1954,17 @@
   mathChallengeChoiceBtns.forEach(function (btn) {
     btn.addEventListener('click', function () {
       if (!mathChallengeState || !mathChallengeState.current) return;
-      const correct = btn.dataset.correct === '1';
+
+      var correct = btn.dataset.correct === '1';
+      var p = mathChallengeState.current;
+      var selected = parseInt(btn.textContent, 10);
+
       mathChallengeChoiceBtns.forEach(function (b) {
         if (b.dataset.correct === '1') b.classList.add('correct');
         else b.classList.add('incorrect');
         b.disabled = true;
       });
-      const p = mathChallengeState.current;
+
       if (correct) {
         mathChallengeState.score += 10;
         mathChallengeScorePill.textContent = 'Score: ' + mathChallengeState.score;
@@ -1894,11 +1976,15 @@
         mathChallengeCard.classList.remove('sparkle');
         simpleBeep(false);
       }
+
+      // Store what was selected AND the correct answer
       mathChallengeState.answered.push({
         problem: p.a + ' ' + p.op + ' ' + p.b,
+        userAnswer: selected,
         correctAnswer: p.answer,
         correct: correct
       });
+
       setTimeout(function () {
         if (!mathChallengeState) return;
         mathChallengeCard.classList.remove('sparkle');
@@ -1906,52 +1992,66 @@
       }, 400);
     });
   });
+
   mathChallengeStartBtn.onclick = startMathChallenge;
 
-  function endMathChallenge() {
+    function endMathChallenge() {
     if (mathChallengeTimerId) {
       clearInterval(mathChallengeTimerId);
       mathChallengeTimerId = null;
     }
     if (!mathChallengeState) return;
 
-    const type = mathChallengeState.type;
-    const score = mathChallengeState.score;
-    const answered = mathChallengeState.answered;
+    var type = mathChallengeState.type;
+    var score = mathChallengeState.score;
+    var answered = mathChallengeState.answered;
 
     mathChallengeResults.style.display = 'block';
     mathChallengeResultsList.innerHTML = '';
 
-    answered.forEach(function (entry) {
-      const row = document.createElement('div');
-      row.className = 'leaderboard-row';
+    if (!answered.length) {
+      var msg = document.createElement('div');
+      msg.className = 'hint';
+      msg.textContent = 'No problems answered this round.';
+      mathChallengeResultsList.appendChild(msg);
+    } else {
+      answered.forEach(function (entry) {
+        var row = document.createElement('div');
+        row.className = 'leaderboard-row';
 
-      const mark = entry.correct ? '✅' : '❌';
+        var userAns = (entry.userAnswer === undefined || entry.userAnswer === null)
+          ? '(blank)'
+          : entry.userAnswer;
 
-      row.innerHTML =
-        '<span>' + entry.problem + '</span>' +
-        '<span>' + entry.correctAnswer + ' ' + mark + '</span>';
+        var mark = entry.correct ? '✅' : '❌';
 
-      mathChallengeResultsList.appendChild(row);
-    });
+        row.innerHTML =
+          '<span>' + entry.problem + '</span>' +
+          '<span>' + userAns + ' → ' + entry.correctAnswer + ' ' + mark + '</span>';
 
-    const list = mathChallengeScores[type] || [];
-    const newEntry = { score: score, type: type, date: Date.now(), name: '' };
-    const combined = list.concat([newEntry])
+        mathChallengeResultsList.appendChild(row);
+      });
+    }
+
+    var list = mathChallengeScores[type] || [];
+    var newEntry = { score: score, type: type, date: Date.now(), name: '' };
+    var combined = list.concat([newEntry])
       .sort(function (a, b) { return b.score - a.score; })
       .slice(0, 10);
 
-    const isHighScore = combined.indexOf(newEntry) !== -1 && score > 0;
+    var isHighScore = combined.indexOf(newEntry) !== -1 && score > 0;
     if (isHighScore) {
-      const name = prompt('New high score! Enter a name:') || 'Player';
+      var name = prompt('New high score! Enter a name:') || 'Player';
       newEntry.name = name;
     }
+
     mathChallengeScores[type] = combined;
     saveMathChallengeScores();
     renderMathLeaderboards();
     renderMathHomeTop();
     mathChallengeState = null;
   }
+
 
   function renderMathLeaderboards() {
     mathLeaderboardsPageEl.innerHTML = '';
