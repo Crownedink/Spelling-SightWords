@@ -757,8 +757,8 @@
 <script>
   // --- Service worker registration ---
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('./sw.js').catch(function () {});
     });
   }
 
@@ -772,8 +772,8 @@
   }
   const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
   applyTheme(savedTheme);
-  document.getElementById('themeDarkBtn').onclick = () => applyTheme('dark');
-  document.getElementById('themeLightBtn').onclick = () => applyTheme('light');
+  document.getElementById('themeDarkBtn').onclick = function () { applyTheme('dark'); };
+  document.getElementById('themeLightBtn').onclick = function () { applyTheme('light'); };
 
   // --- Slide-out menu ---
   const sideMenu = document.getElementById('sideMenu');
@@ -792,7 +792,7 @@
   menuToggle.onclick = openMenu;
   menuOverlay.onclick = closeMenu;
 
-   function switchView(viewId) {
+  function switchView(viewId) {
     document.querySelectorAll('section.view').forEach(function (sec) {
       sec.classList.toggle('active', sec.id === 'view-' + viewId);
     });
@@ -810,7 +810,6 @@
 
   // --- Sight words data ---
   const DEFAULT_SETS = {
-
     "Top 20": [
       ["the", "The cat is on the bed."],
       ["of", "A glass of water."],
@@ -833,7 +832,7 @@
       ["they", "They are at school."],
       ["I", "I can read."]
     ],
-    "Level 2 (Early Primer, 30)": (function() {
+    "Level 2 (Early Primer, 30)": (function () {
       const words = ["am","at","ate","be","black","brown","but","came","did","do","eat","four","get","good","have","into","like","must","new","no","now","on","our","out","please","pretty","ran","ride","saw","so"];
       const sentences = {
         "am":"I am ready.",
@@ -867,9 +866,11 @@
         "saw":"We saw a bird.",
         "so":"It was cold, so I wore a coat."
       };
-      return words.map(w => [w, sentences[w] || ("I can read the word '" + w + "'.")]);
+      return words.map(function (w) {
+        return [w, sentences[w] || ("I can read the word '" + w + "'.")];
+      });
     })(),
-    "Level 3 (First Grade, 30)": (function() {
+    "Level 3 (First Grade, 30)": (function () {
       const words = ["after","again","an","any","as","ask","by","could","every","fly","from","give","going","had","has","her","him","how","just","know","let","live","many","old","once","open","over","put","round","some"];
       const sentences = {
         "after":"After lunch we read.",
@@ -903,7 +904,9 @@
         "round":"Draw a round circle.",
         "some":"I have some water."
       };
-      return words.map(w => [w, sentences[w] || ("I can read the word '" + w + "'.")]);
+      return words.map(function (w) {
+        return [w, sentences[w] || ("I can read the word '" + w + "'.")];
+      });
     })()
   };
 
@@ -930,20 +933,20 @@
 
   function foldersList() {
     const defNames = Object.keys(DEFAULT_SETS);
-    const customNames = Object.keys(SETS).filter(n => !defNames.includes(n));
+    const customNames = Object.keys(SETS).filter(function (n) { return defNames.indexOf(n) === -1; });
     return defNames.concat(customNames);
   }
 
   function selectFolderOptions() {
     const current = folderSel.value;
     folderSel.innerHTML = '';
-    foldersList().forEach(name => {
+    foldersList().forEach(function (name) {
       const opt = document.createElement('option');
       opt.value = name;
       opt.textContent = name;
       folderSel.appendChild(opt);
     });
-    if (foldersList().includes(current)) folderSel.value = current;
+    if (foldersList().indexOf(current) !== -1) folderSel.value = current;
     else folderSel.value = foldersList()[0];
   }
 
@@ -955,19 +958,19 @@
 
   let activeFolder = "Top 20";
   selectFolderOptions();
-  if (!foldersList().includes(activeFolder)) activeFolder = foldersList()[0];
+  if (foldersList().indexOf(activeFolder) === -1) activeFolder = foldersList()[0];
 
   let data = getFolderData(activeFolder);
-  let order = data.map((_, idx) => idx);
+  let order = data.map(function (_, idx) { return idx; });
   let i = 0;
   let flipped = false;
 
   function shuffleOrder(arr) {
     for (let j = arr.length - 1; j > 0; j--) {
       const k = Math.floor(Math.random() * (j + 1));
-      const temp = arr[j];
+      const tmp = arr[j];
       arr[j] = arr[k];
-      arr[k] = temp;
+      arr[k] = tmp;
     }
   }
 
@@ -1016,7 +1019,7 @@
     renderFlashcard();
   }
   function shuffleFlashcards() {
-    order = data.map((_, idx) => idx);
+    order = data.map(function (_, idx) { return idx; });
     shuffleOrder(order);
     i = 0;
     flipped = false;
@@ -1153,10 +1156,13 @@
           incoming = { Imported: parsed };
         } else throw new Error('Invalid file format');
         for (const folder in incoming) {
+          if (!Object.prototype.hasOwnProperty.call(incoming, folder)) continue;
           const items = incoming[folder];
           if (!Array.isArray(items)) continue;
           if (!SETS[folder]) SETS[folder] = [];
-          const key = function (w, s) { return String(w).trim().toLowerCase() + '|' + String(s).trim().toLowerCase(); };
+          const key = function (w, s) {
+            return String(w).trim().toLowerCase() + '|' + String(s).trim().toLowerCase();
+          };
           const existing = new Set(SETS[folder].map(function (pair) {
             return key(pair[0], pair[1]);
           }));
@@ -1226,7 +1232,9 @@
     sightSubnavButtons.forEach(function (btn) {
       btn.classList.toggle('active', btn.dataset.sightmode === mode);
     });
-    document.querySelectorAll('.sight-mode').forEach(function (sec) { sec.style.display = 'none'; });
+    document.querySelectorAll('.sight-mode').forEach(function (sec) {
+      sec.style.display = 'none';
+    });
     document.getElementById('sight-' + mode).style.display = 'block';
     if (mode === 'quiz') { resetQuizState(); setupQuizQuestion(); }
     if (mode === 'spelling') { resetSpellingState(); }
@@ -1280,7 +1288,7 @@
     const s = pair[1];
     quizPromptEl.textContent = 'Tap the card to hear the word.';
     quizSentenceHintEl.textContent = s + '  (Swipe left or right to advance.)';
-    const allIdx = data.map(function (_, i) { return i; });
+    const allIdx = data.map(function (_, ii) { return ii; });
     const distractors = allIdx.filter(function (j) { return j !== idx; });
     shuffleOrder(distractors);
     const choiceIdxs = [idx].concat(distractors.slice(0, 3));
@@ -1614,6 +1622,7 @@
       swChallengeTimerId = null;
     }
     if (!swChallengeState) return;
+
     const score = swChallengeState.score;
     const answered = swChallengeState.answered;
 
@@ -1837,6 +1846,7 @@
     }, 1000);
     setupMathChallengeQuestion();
   }
+
   function setupMathChallengeQuestion() {
     if (!mathChallengeState) return;
     const type = mathChallengeState.type;
@@ -1862,6 +1872,7 @@
       btn.dataset.correct = (val === p.answer) ? '1' : '0';
     });
   }
+
   mathChallengeChoiceBtns.forEach(function (btn) {
     btn.addEventListener('click', function () {
       if (!mathChallengeState || !mathChallengeState.current) return;
@@ -2029,10 +2040,9 @@
   renderMathLeaderboards();
   renderMathHomeTop();
 
-  // expose for home tile
+  // expose for home tiles
   window.setSightMode = setSightMode;
   window.switchView = switchView;
 </script>
-
 </body>
 </html>
