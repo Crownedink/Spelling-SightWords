@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -268,7 +267,26 @@
     }
 
     .card {
-          /* Timer + score inside Challenge 60 card */
+      user-select: none;
+      width: 100%;
+      height: 55vh;
+      min-height: 260px;
+      background: radial-gradient(circle at top, rgba(248, 250, 252, 0.1), transparent),
+              linear-gradient(180deg, var(--bg-alt), var(--card));
+      border: 1px solid var(--border);
+      border-radius: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      padding: 1rem;
+      text-align: center;
+      overflow: hidden;
+      margin-bottom: 0.6rem;
+}
+        /* Timer + score pills inside cards (Sight Challenge + Math Sprint) */
     .card-metrics {
       position: absolute;
       top: 0.6rem;
@@ -534,6 +552,18 @@
         </div>
       </div>
 
+      <div class="tile" onclick="switchView('math'); setMathMode('challenge');">
+      <div>
+        <div class="tile-title"><span>⏱️</span> Math Sprint 60</div>
+        <div class="tile-subtitle">60 seconds of fast math drills with scoring.</div>
+      </div>
+      <div class="row">
+        <span class="pill">Time + Score</span>
+        <span class="pill">Top 10 scores</span>
+      </div>
+    </div>
+
+
       <div class="settings-group">
         <h3>🏆 Best Scores (Quick Glance)</h3>
         <div id="homeSwTop" class="leaderboard"></div>
@@ -742,18 +772,23 @@
             <option value="mixed">Mixed</option>
           </select>
         </div>
+
         <div class="row">
           <button id="mathChallengeStartBtn" class="btn-primary">Start Sprint</button>
-          <span class="pill" id="mathChallengeTimer">Time: 60</span>
-          <span class="pill" id="mathChallengeScorePill">Score: 0</span>
         </div>
 
-        <div class="card" id="mathChallengeCard">
-          <div class="math-problem" id="mathChallengeProblem">Press "Start Sprint"</div>
-          <div class="math-answer" id="mathChallengeAnswer"></div>
-        </div>
+      <div class="card" id="mathChallengeCard">
+  <!-- Time & score inside the card (matches Sight Words Challenge 60) -->
+      <div class="card-metrics">
+        <span class="pill pill-large" id="mathChallengeTimer">Time: 60</span>
+        <span class="pill pill-large" id="mathChallengeScorePill">Score: 0</span>
+      </div>
 
-        <div class="math-choices" id="mathChallengeChoices">
+      <div class="math-problem" id="mathChallengeProblem">Press "Start Sprint"</div>
+      <div class="math-answer" id="mathChallengeAnswer"></div>
+    </div>
+
+      <div class="math-choices" id="mathChallengeChoices">
           <button class="math-choice-btn"></button>
           <button class="math-choice-btn"></button>
           <button class="math-choice-btn"></button>
@@ -855,108 +890,201 @@
     });
   });
 
-  // --- Sight words data ---
-  const DEFAULT_SETS = {
-    "Top 20": [
-      ["the", "The cat is on the bed."],
-      ["of", "A glass of water."],
-      ["and", "You and I are friends."],
-      ["a", "I see a dog."],
-      ["to", "I go to school."],
-      ["in", "The book is in the bag."],
-      ["is", "She is happy."],
-      ["you", "You are my friend."],
-      ["that", "I like that toy."],
-      ["it", "It is raining."],
-      ["he", "He is my brother."],
-      ["was", "She was at the park."],
-      ["for", "This gift is for you."],
-      ["on", "The ball is on the table."],
-      ["are", "We are ready."],
-      ["as", "Run as fast as you can."],
-      ["with", "I play with my dog."],
-      ["his", "This is his book."],
-      ["they", "They are at school."],
-      ["I", "I can read."]
-    ],
-    "Level 2 (Early Primer, 30)": (function () {
-      const words = ["am","at","ate","be","black","brown","but","came","did","do","eat","four","get","good","have","into","like","must","new","no","now","on","our","out","please","pretty","ran","ride","saw","so"];
-      const sentences = {
-        "am":"I am ready.",
-        "at":"We are at home.",
-        "ate":"I ate lunch.",
-        "be":"Please be kind.",
-        "black":"The cat is black.",
-        "brown":"The bear is brown.",
-        "but":"I want to play, but I must read.",
-        "came":"She came to class.",
-        "did":"He did his work.",
-        "do":"Do your best.",
-        "eat":"We eat together.",
-        "four":"I have four books.",
-        "get":"Go get your coat.",
-        "good":"That is a good idea.",
-        "have":"We have time.",
-        "into":"Walk into the room.",
-        "like":"I like this game.",
-        "must":"You must try.",
-        "new":"This book is new.",
-        "no":"No, thank you.",
-        "now":"Read it now.",
-        "on":"The hat is on me.",
-        "our":"This is our team.",
-        "out":"Go out to play.",
-        "please":"Please help me.",
-        "pretty":"The flower is pretty.",
-        "ran":"He ran fast.",
-        "ride":"I ride my bike.",
-        "saw":"We saw a bird.",
-        "so":"It was cold, so I wore a coat."
-      };
-      return words.map(function (w) {
-        return [w, sentences[w] || ("I can read the word '" + w + "'.")];
-      });
-    })(),
-    "Level 3 (First Grade, 30)": (function () {
-      const words = ["after","again","an","any","as","ask","by","could","every","fly","from","give","going","had","has","her","him","how","just","know","let","live","many","old","once","open","over","put","round","some"];
-      const sentences = {
-        "after":"After lunch we read.",
-        "again":"Try again.",
-        "an":"I ate an apple.",
-        "any":"Do you have any?",
-        "as":"Run as fast as you can.",
-        "ask":"Ask a question.",
-        "by":"Stand by me.",
-        "could":"I could help you.",
-        "every":"Every day we learn.",
-        "fly":"Birds can fly.",
-        "from":"This is from me.",
-        "give":"Please give me a pen.",
-        "going":"We are going home.",
-        "had":"She had a snack.",
-        "has":"He has a book.",
-        "her":"This is her hat.",
-        "him":"I will help him.",
-        "how":"How are you?",
-        "just":"Just do it.",
-        "know":"I know the answer.",
-        "let":"Let me try.",
-        "live":"We live here.",
-        "many":"We saw many stars.",
-        "old":"That car is old.",
-        "once":"Once we went camping.",
-        "open":"Open the door.",
-        "over":"Jump over the line.",
-        "put":"Put it away.",
-        "round":"Draw a round circle.",
-        "some":"I have some water."
-      };
-      return words.map(function (w) {
-        return [w, sentences[w] || ("I can read the word '" + w + "'.")];
-      });
-    })()
-  };
+ // --- Sight words data ---
+const BASE_DEFAULT_SETS = {
+  "Top 20": [
+    ["the", "The cat is on the bed."],
+    ["of", "A glass of water."],
+    ["and", "You and I are friends."],
+    ["a", "I see a dog."],
+    ["to", "I go to school."],
+    ["in", "The book is in the bag."],
+    ["is", "She is happy."],
+    ["you", "You are my friend."],
+    ["that", "I like that toy."],
+    ["it", "It is raining."],
+    ["he", "He is my brother."],
+    ["was", "She was at the park."],
+    ["for", "This gift is for you."],
+    ["on", "The ball is on the table."],
+    ["are", "We are ready."],
+    ["as", "Run as fast as you can."],
+    ["with", "I play with my dog."],
+    ["his", "This is his book."],
+    ["they", "They are at school."],
+    ["I", "I can read."]
+  ],
 
+  "Level 2 (Early Primer, 30)": (function () {
+    const words = ["am","at","ate","be","black","brown","but","came","did","do","eat","four","get","good","have","into","like","must","new","no","now","on","our","out","please","pretty","ran","ride","saw","so"];
+    const sentences = {
+      "am":"I am ready.",
+      "at":"We are at home.",
+      "ate":"I ate lunch.",
+      "be":"Please be kind.",
+      "black":"The cat is black.",
+      "brown":"The bear is brown.",
+      "but":"I want to play, but I must read.",
+      "came":"She came to class.",
+      "did":"He did his work.",
+      "do":"Do your best.",
+      "eat":"We eat together.",
+      "four":"I have four books.",
+      "get":"Go get your coat.",
+      "good":"That is a good idea.",
+      "have":"We have time.",
+      "into":"Walk into the room.",
+      "like":"I like this game.",
+      "must":"You must try.",
+      "new":"This book is new.",
+      "no":"No, thank you.",
+      "now":"Read it now.",
+      "on":"The hat is on me.",
+      "our":"This is our team.",
+      "out":"Go out to play.",
+      "please":"Please help me.",
+      "pretty":"The flower is pretty.",
+      "ran":"He ran fast.",
+      "ride":"I ride my bike.",
+      "saw":"We saw a bird.",
+      "so":"It was cold, so I wore a coat."
+    };
+    return words.map(function (w) {
+      return [w, sentences[w] || ("I can read the word '" + w + "'.")];
+    });
+  })(),
+
+  "Level 3 (First Grade, 30)": (function () {
+    const words = ["after","again","an","any","as","ask","by","could","every","fly","from","give","going","had","has","her","him","how","just","know","let","live","many","old","once","open","over","put","round","some"];
+    const sentences = {
+      "after":"After lunch we read.",
+      "again":"Try again.",
+      "an":"I ate an apple.",
+      "any":"Do you have any?",
+      "as":"Run as fast as you can.",
+      "ask":"Ask a question.",
+      "by":"Stand by me.",
+      "could":"I could help you.",
+      "every":"Every day we learn.",
+      "fly":"Birds can fly.",
+      "from":"This is from me.",
+      "give":"Please give me a pen.",
+      "going":"We are going home.",
+      "had":"She had a snack.",
+      "has":"He has a book.",
+      "her":"This is her hat.",
+      "him":"I will help him.",
+      "how":"How are you?",
+      "just":"Just do it.",
+      "know":"I know the answer.",
+      "let":"Let me try.",
+      "live":"We live here.",
+      "many":"We saw many stars.",
+      "old":"That car is old.",
+      "once":"Once we went camping.",
+      "open":"Open the door.",
+      "over":"Jump over the line.",
+      "put":"Put it away.",
+      "round":"Draw a round circle.",
+      "some":"I have some water."
+    };
+    return words.map(function (w) {
+      return [w, sentences[w] || ("I can read the word '" + w + "'.")];
+    });
+  })()
+};
+
+// 12+ folders total: keep your originals AND add Fry folders
+const DEFAULT_SETS = (function () {
+  function makePairs(words) {
+    return words.map(function (w) {
+      return [w, "I can read the word '" + w + "'."];
+    });
+  }
+
+  const extended = {};
+
+  // Alphabet folder (uppercase + lowercase)
+  extended["Alphabet (A–Z)"] = (function () {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    return letters.map(function (L) {
+      const lower = L.toLowerCase();
+      return [L + " " + lower, "Uppercase " + L + ", lowercase " + lower + "."];
+    });
+  })();
+
+  extended["Fry Grade 1 (Top 30)"] = makePairs([
+    "the","of","and","a","to","in","is","you","that","it",
+    "he","was","for","on","are","as","with","his","they","I",
+    "at","be","this","have","from","or","one","had","by","word"
+  ]);
+
+  extended["Fry Grade 2 (Top 30)"] = makePairs([
+    "but","not","what","all","were","we","when","your","can","said",
+    "there","use","an","each","which","she","do","how","their","if",
+    "will","up","other","about","out","many","then","them","these","so"
+  ]);
+
+  extended["Fry Grade 3 (Top 30)"] = makePairs([
+    "some","her","would","make","like","him","into","time","has","look",
+    "two","more","write","go","see","number","no","way","could","people",
+    "my","than","first","water","been","call","who","oil","its","now"
+  ]);
+
+  extended["Fry Grade 4 (Top 30)"] = makePairs([
+    "find","long","down","day","did","get","come","made","may","part",
+    "over","new","sound","take","only","little","work","know","place","year",
+    "live","me","back","give","most","very","after","thing","our","just"
+  ]);
+
+  extended["Fry Grade 5 (Top 30)"] = makePairs([
+    "name","good","sentence","man","think","say","great","where","help","through",
+    "much","before","line","right","too","mean","old","any","same","tell",
+    "boy","follow","came","want","show","also","around","form","three","small"
+  ]);
+
+  extended["Fry Grade 6 (Top 30)"] = makePairs([
+    "set","put","end","does","another","well","large","must","big","even",
+    "such","because","turn","here","why","ask","went","men","read","need",
+    "land","different","home","us","move","try","kind","hand","picture","again"
+  ]);
+
+  extended["Fry Grade 7 (Top 30)"] = makePairs([
+    "change","off","play","spell","air","away","animal","house","point","page",
+    "letter","mother","answer","found","study","still","learn","should","America","world",
+    "high","every","near","add","food","between","own","below","country","plant"
+  ]);
+
+  extended["Fry Grade 8 (Top 30)"] = makePairs([
+    "last","school","father","keep","tree","never","start","city","earth","eye",
+    "light","thought","head","under","story","saw","left","don't","few","while",
+    "along","might","close","something","seem","next","hard","open","example","begin"
+  ]);
+
+  extended["Fry Grade 9 (Top 30)"] = makePairs([
+    "life","always","those","both","paper","together","got","group","often","run",
+    "important","until","children","side","feet","car","mile","night","walk","white",
+    "sea","began","grow","took","river","four","carry","state","once","book"
+  ]);
+
+  extended["Fry Grade 10 (Top 30)"] = makePairs([
+    "hear","stop","without","second","later","miss","idea","enough","eat","face",
+    "watch","far","Indian","real","almost","let","above","girl","sometimes","mountains",
+    "cut","young","talk","soon","list","song","being","leave","family","it's"
+  ]);
+
+  extended["Fry Advanced (901–930)"] = makePairs([
+    "meat","lifted","process","army","hat","property","particular","swim","terms","current",
+    "park","sell","shoulder","industry","wash","block","spread","cattle","wife","sharp",
+    "company","radio","we'll","action","capital","factories","settled","yellow","isn't","southern"
+  ]);
+
+  // Keep originals + add Fry
+  return Object.assign({}, BASE_DEFAULT_SETS, extended);
+})();
+
+  
+  
   const STORAGE_KEY_SETS = 'sight_words_sets_json_v3';
   let SETS = {};
   try {
@@ -1993,7 +2121,7 @@
     });
   });
 
-  mathChallengeStartBtn.onclick = startMathChallenge;
+    mathChallengeStartBtn.onclick = startMathChallenge;
 
     function endMathChallenge() {
     if (mathChallengeTimerId) {
@@ -2143,6 +2271,8 @@
   // expose for home tiles
   window.setSightMode = setSightMode;
   window.switchView = switchView;
+  window.setMathMode = setMathMode;
+
 </script>
 </body>
 </html>
